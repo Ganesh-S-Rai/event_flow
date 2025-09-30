@@ -1,12 +1,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Ticket, CheckCircle, Download, Loader2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,10 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { registerLead, type RegisterLeadOutput } from '@/ai/flows/register-lead-flow';
 import { useToast } from '@/hooks/use-toast';
-import type { Event } from '@/lib/data';
+import type { Event, Block } from '@/lib/data';
 
-type Speaker = NonNullable<Event['speakers']>[0];
-type AgendaItem = NonNullable<Event['agenda']>[0];
 type FormField = NonNullable<Event['formFields']>[0];
 
 function RegistrationForm({ 
@@ -152,20 +149,59 @@ function RegistrationForm({
     );
 }
 
+function RenderBlock({ block, onButtonClick }: { block: Block; onButtonClick?: () => void }) {
+  const { type, content } = block;
+  const alignment = content.alignment || 'left';
+  const alignmentClass = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right',
+  }[alignment] || 'text-left';
+
+  switch (type) {
+    case 'heading':
+      const Tag = content.level || 'h2';
+      const sizeClass = {
+        h1: 'text-4xl md:text-6xl font-bold tracking-tighter',
+        h2: 'text-3xl font-bold tracking-tighter sm:text-4xl',
+        h3: 'text-2xl font-bold tracking-tighter',
+      }[Tag] || 'text-2xl font-bold';
+      return <Tag className={`${sizeClass} ${alignmentClass}`}>{content.text}</Tag>;
+
+    case 'text':
+      return <p className={`text-muted-foreground md:text-xl/relaxed whitespace-pre-line ${alignmentClass}`}>{content.text}</p>;
+
+    case 'image':
+      return (
+        <div className="relative aspect-video w-full my-4 rounded-lg overflow-hidden">
+          <Image src={content.src} alt={content.alt || 'Event image'} fill className="object-cover" />
+        </div>
+      );
+    
+    case 'button':
+        return (
+            <div className={alignmentClass}>
+                <Button size="lg" className="mt-4" onClick={onButtonClick}>
+                    {content.text}
+                </Button>
+            </div>
+        );
+
+    default:
+      return null;
+  }
+}
+
+
 export function EventPageClient({ event }: { event: Event }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { formFields = [], content = [] } = event;
 
-  // Default values for a new/draft event
-  const heroTitle = event.heroTitle || event.name;
-  const heroCta = event.heroCta || 'Register Now';
-  const heroImageUrl = event.heroImageUrl || "https://picsum.photos/seed/hero-event/1200/800";
-  const aboutTitle = event.aboutTitle || 'About The Event';
-  const aboutDescription = event.aboutDescription || event.description;
-  const speakersTitle = event.speakersTitle || 'Featured Speakers';
-  const speakers = event.speakers || [];
-  const agendaTitle = event.agendaTitle || 'Event Agenda';
-  const agenda = event.agenda || [];
-  const formFields = event.formFields || [];
+  const handleOpenForm = () => {
+    if (formFields.length > 0) {
+      setIsFormOpen(true);
+    }
+  };
 
   return (
     <div className="bg-background text-foreground">
@@ -175,149 +211,32 @@ export function EventPageClient({ event }: { event: Event }) {
             onOpenChange={setIsFormOpen} 
             fields={formFields} 
             eventId={event.id} 
-            eventName={heroTitle}
+            eventName={event.name}
           />
        )}
       <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-20 border-b">
-        <Link
-          href="#"
-          className="flex items-center justify-center font-bold"
-          prefetch={false}
-        >
+        <Link href="#" className="flex items-center justify-center font-bold" prefetch={false}>
           {event.name}
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-            {formFields.length > 0 && heroCta && (
-                <Button asChild>
-                    <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>
-                    <Ticket className="mr-2" />
-                    {heroCta}
-                    </Link>
-                </Button>
-            )}
+            <div className="flex items-center gap-2">
+                <Calendar className="size-4" />
+                <span className="text-sm">{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <MapPin className="size-4" />
+                <span className="text-sm">{event.location}</span>
+            </div>
         </nav>
       </header>
       <main>
-        {/* Hero Section */}
-        <section className="relative h-[60vh] flex items-center justify-center text-center text-primary-foreground">
-          <Image
-            src={heroImageUrl}
-            alt={heroTitle}
-            fill
-            className="object-cover -z-10"
-            data-ai-hint="event stage"
-          />
-          <div className="absolute inset-0 bg-black/60 -z-10" />
-          <div className="container px-4 md:px-6 space-y-4">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">
-              {heroTitle}
-            </h1>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-lg">
-              <div className="flex items-center gap-2">
-                <Calendar className="size-5" />
-                <span>
-                  {new Date(event.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="size-5" />
-                <span>{event.location}</span>
-              </div>
+        <section className="py-12 md:py-24">
+            <div className="container px-4 md:px-6 space-y-6">
+                {content.map(block => (
+                    <RenderBlock key={block.id} block={block} onButtonClick={handleOpenForm} />
+                ))}
             </div>
-             {formFields.length > 0 && heroCta && (
-                <Button asChild size="lg" className="mt-4">
-                    <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>{heroCta}</Link>
-                </Button>
-             )}
-          </div>
         </section>
-
-        {/* About the Event Section */}
-        {aboutDescription && (
-            <section id="about" className="py-12 md:py-24">
-            <div className="container px-4 md:px-6">
-                <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                    {aboutTitle}
-                </h2>
-                <p className="mt-4 text-muted-foreground md:text-xl/relaxed whitespace-pre-line">
-                    {aboutDescription}
-                </p>
-                </div>
-            </div>
-            </section>
-        )}
-
-        {/* Speakers Section */}
-        {speakers.length > 0 && (
-            <section id="speakers" className="py-12 md:py-24 bg-muted/40">
-                <div className="container px-4 md:px-6">
-                    <div className="max-w-3xl mx-auto text-center mb-12">
-                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">{speakersTitle}</h2>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {speakers.map(speaker => (
-                            <div key={speaker.id} className="text-center">
-                                <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-background shadow-lg">
-                                    <AvatarImage src={speaker.avatarUrl} alt={speaker.name} />
-                                    <AvatarFallback>{speaker.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                </Avatar>
-                                <h3 className="text-xl font-bold">{speaker.name}</h3>
-                                <p className="text-muted-foreground">{speaker.title}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        )}
-
-        {/* Agenda Section */}
-        {agenda.length > 0 && (
-            <section id="agenda" className="py-12 md:py-24">
-                <div className="container px-4 md:px-6">
-                    <div className="max-w-3xl mx-auto text-center mb-12">
-                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">{agendaTitle}</h2>
-                    </div>
-                    <div className="max-w-3xl mx-auto space-y-8">
-                        {agenda.map(item => (
-                            <div key={item.id} className="flex gap-4">
-                                <div className="w-24 text-right">
-                                    <p className="font-bold text-primary shrink-0">{item.time}</p>
-                                </div>
-                                <div className="flex-1 border-l-2 border-primary pl-4">
-                                    <h4 className="font-bold text-lg">{item.title}</h4>
-                                    <p className="text-muted-foreground">{item.description}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        )}
-        
-        {/* RSVP Section */}
-        {formFields.length > 0 && (
-            <section id="register" className="py-12 md:py-24 bg-muted/40">
-            <div className="container px-4 md:px-6">
-                <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                    Register Now
-                </h2>
-                <p className="mt-4 text-muted-foreground md:text-xl">
-                    Secure your spot. Click the button to get started.
-                </p>
-                    <Button size="lg" className="mt-6" onClick={() => setIsFormOpen(true)}>
-                        Register Today
-                    </Button>
-                </div>
-            </div>
-            </section>
-        )}
-
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">&copy; 2024 {event.name}. All rights reserved.</p>

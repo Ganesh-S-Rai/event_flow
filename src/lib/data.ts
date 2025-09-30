@@ -1,11 +1,18 @@
 
+
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase'; // Make sure you have this file to initialize Firestore
 import { unstable_noStore as noStore } from 'next/cache';
 
+// --- Block Types for Landing Page Content ---
+export type Block = {
+  id: string;
+  type: 'heading' | 'text' | 'image' | 'speaker' | 'agenda' | 'button';
+  content: any; // This will vary based on the block type
+};
 
 export type Event = {
-  id: string;
+  id:string;
   name: string;
   date: string;
   location: string;
@@ -13,16 +20,11 @@ export type Event = {
   registrations: number;
   status: 'Draft' | 'Active' | 'Completed' | 'Cancelled';
   slug?: string;
-  // Landing page content
-  heroTitle?: string;
-  heroCta?: string;
-  heroImageUrl?: string;
-  aboutTitle?: string;
-  aboutDescription?: string;
-  speakersTitle?: string;
-  speakers?: { id: string; name: string; title: string; avatarUrl: string; }[];
-  agendaTitle?: string;
-  agenda?: { id: string; time: string; title: string; description: string; }[];
+
+  // New flexible content structure
+  content?: Block[];
+
+  // Form fields remain separate as they define the registration logic
   formFields?: { id: string; label: string; type: 'text' | 'email' | 'tel' | 'select'; placeholder: string; options?: string[] }[];
 };
 
@@ -42,6 +44,7 @@ export type Template = {
   name: string;
   description: string;
   imageUrl: string;
+  content: Block[]; // Templates are now defined by their block structure
 };
 
 const templates: Template[] = [
@@ -50,18 +53,42 @@ const templates: Template[] = [
       name: 'Modern Conference',
       description: 'A sleek, professional template for tech conferences and corporate events.',
       imageUrl: 'https://picsum.photos/seed/tpl1/600/400',
+      content: [
+        { id: 'block-1', type: 'heading', content: { text: 'InnovateX 2024', level: 'h1', alignment: 'center' } },
+        { id: 'block-2', type: 'text', content: { text: 'Join us for the most anticipated tech conference of the year. Discover the future of innovation.', alignment: 'center' } },
+        { id: 'block-3', type: 'image', content: { src: 'https://picsum.photos/seed/event-hero/1200/500', alt: 'Conference stage' } },
+        { id: 'block-4', type: 'button', content: { text: 'Register Now', alignment: 'center' } },
+        { id: 'block-5', type: 'heading', content: { text: 'About The Event', level: 'h2', alignment: 'center' } },
+        { id: 'block-6', type: 'text', content: { text: 'This is where your event description will go. It should be exciting and informative, telling people why they should attend. This template provides a clean and modern layout to showcase your event details effectively.', alignment: 'left' } },
+      ]
     },
     {
       id: 'tpl-002',
       name: 'Creative Workshop',
       description: 'A vibrant and artistic template perfect for workshops and creative gatherings.',
       imageUrl: 'https://picsum.photos/seed/tpl2/600/400',
+      content: [
+        { id: 'block-1', type: 'image', content: { src: 'https://picsum.photos/seed/workshop-hero/1200/500', alt: 'Creative workshop in session' } },
+        { id: 'block-2', type: 'heading', content: { text: 'Unlock Your Creativity', level: 'h1', alignment: 'center' } },
+        { id: 'block-3', type: 'text', content: { text: 'A hands-on workshop designed for artists, designers, and creators of all levels.', alignment: 'center' } },
+        { id: 'block-4', type: 'button', content: { text: 'Reserve Your Spot', alignment: 'center' } },
+        { id: 'block-5', type: 'heading', content: { text: 'What You Will Learn', level: 'h2', alignment: 'left' } },
+        { id: 'block-6', type: 'text', content: { text: 'This workshop covers a variety of techniques and skills. You will leave with a completed project and a new set of creative tools.', alignment: 'left' } },
+      ]
     },
     {
       id: 'tpl-003',
       name: 'Community Meetup',
       description: 'A friendly and inviting template for local meetups and community-driven events.',
       imageUrl: 'https://picsum.photos/seed/tpl3/600/400',
+      content: [
+        { id: 'block-1', type: 'heading', content: { text: 'Community Networking Night', level: 'h1', alignment: 'left' } },
+        { id: 'block-2', type: 'text', content: { text: 'Connect with local professionals and enthusiasts in a relaxed and friendly atmosphere.', alignment: 'left' } },
+        { id: 'block-3', type: 'button', content: { text: 'RSVP Now', alignment: 'left' } },
+        { id: 'block-4', type: 'image', content: { src: 'https://picsum.photos/seed/meetup-hero/1200/500', alt: 'People networking at a meetup' } },
+        { id: 'block-5', type: 'heading', content: { text: 'Event Details', level: 'h2', alignment: 'left' } },
+        { id: 'block-6', type: 'text', content: { text: 'Join us for an evening of networking, snacks, and great conversations. We look forward to seeing you there!', alignment: 'left' } },
+      ]
     },
   ];
 
@@ -116,7 +143,7 @@ export const getEventById = async (id: string): Promise<Event | undefined> => {
                     location: 'Online',
                     registrations: 0,
                     status: 'Draft',
-                    heroTitle: template.name,
+                    content: template.content, // Use the block content from the template
                 };
             }
             console.log("No such document or template!");
