@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
 import { getEvents, getLeads } from '@/lib/data';
 import { StatsCards } from './components/stats-cards';
 import { Overview } from './components/overview';
 import { RecentSignups } from './components/recent-signups';
 import { CalendarDateRangePicker } from './components/date-range-picker';
+import { CreateEvent } from './components/create-event';
 
 export default async function DashboardPage() {
   const events = await getEvents();
@@ -15,7 +15,7 @@ export default async function DashboardPage() {
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <div className="flex items-center space-x-2">
           <CalendarDateRangePicker />
-          <Button>Download</Button>
+          <CreateEvent />
         </div>
       </div>
       <StatsCards events={events} leads={leads} />
