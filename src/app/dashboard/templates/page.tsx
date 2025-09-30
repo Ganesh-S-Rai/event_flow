@@ -49,7 +49,7 @@ export default async function TemplatesPage() {
                 </Link>
               </Button>
               <Button className="w-full" asChild>
-                <Link href="#">
+                <Link href={`/dashboard/editor/${template.id}`}>
                   <Pencil className="mr-2" />
                   Use Template
                 </Link>
