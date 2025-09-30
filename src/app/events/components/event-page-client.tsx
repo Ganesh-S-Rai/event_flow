@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { registerLead, type RegisterLeadOutput } from '@/ai/flows/register-lead-flow';
 import { useToast } from '@/hooks/use-toast';
 import type { Event, Block } from '@/lib/data';
+import { cn } from '@/lib/utils';
 
 type FormField = NonNullable<Event['formFields']>[0];
 
@@ -162,7 +163,7 @@ function RenderBlock({ block, onButtonClick }: { block: Block; onButtonClick?: (
     case 'hero':
         return (
             <section className="relative w-full h-[60vh] flex items-center justify-center text-center text-white">
-                <Image src={content.backgroundImageSrc} alt={content.headline || 'Hero background'} fill className="object-cover -z-10 brightness-50" />
+                {content.backgroundImageSrc && <Image src={content.backgroundImageSrc} alt={content.headline || 'Hero background'} fill className="object-cover -z-10 brightness-50" />}
                 <div className="space-y-4 p-4">
                     <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">{content.headline}</h1>
                     <p className="text-lg md:text-xl/relaxed max-w-2xl mx-auto">{content.text}</p>
@@ -187,19 +188,28 @@ function RenderBlock({ block, onButtonClick }: { block: Block; onButtonClick?: (
     case 'image':
       return (
         <div className="relative aspect-video w-full my-4 rounded-lg overflow-hidden">
-          <Image src={content.src} alt={content.alt || 'Event image'} fill className="object-cover" />
+          {content.src && <Image src={content.src} alt={content.alt || 'Event image'} fill className="object-cover" />}
         </div>
       );
     
     case 'button':
         const button = (
-            <Button size={(content.size || 'default') as ButtonProps['size']} className="mt-4" onClick={onButtonClick}>
+            <Button 
+              size={(content.size || 'default') as ButtonProps['size']} 
+              variant={(content.variant || 'default') as ButtonProps['variant']}
+              className="mt-4" 
+              onClick={onButtonClick}
+            >
                 {content.text}
             </Button>
         );
 
         return (
-            <div className={alignmentClass}>
+            <div className={cn({
+                'text-left': content.alignment === 'left',
+                'text-center': content.alignment === 'center',
+                'text-right': content.alignment === 'right',
+            })}>
                 {content.href ? (
                     <Link href={content.href} target="_blank" rel="noopener noreferrer">
                         {button}

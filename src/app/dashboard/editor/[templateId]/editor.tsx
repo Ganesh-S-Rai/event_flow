@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useEffect, useActionState, Fragment } from 'react';
+import { useState, useEffect, useActionState, Fragment, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Loader2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MessageSquare, Pilcrow, Wand2, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, Edit, Star } from 'lucide-react';
+import { Plus, Trash2, Loader2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MessageSquare, Pilcrow, Wand2, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, Edit, Star, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { type Event, type Block } from '@/lib/data';
@@ -186,6 +186,8 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
     const [isTextGenOpen, setIsTextGenOpen] = useState(false);
     const [isImageGenOpen, setIsImageGenOpen] = useState(false);
     const [isImageEditOpen, setIsImageEditOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
     
     const handleGenerateText = (field: string) => (newText: string) => {
         onUpdate(block.id, { ...block.content, [field]: newText });
@@ -195,20 +197,46 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
         onUpdate(block.id, { ...block.content, [field]: newUrl });
     };
 
+    const handleImageUpload = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.size > 1024 * 1024) { // 1MB size limit
+                toast({ variant: 'destructive', title: 'Error', description: 'Image size should be less than 1MB.' });
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                onUpdate(block.id, { ...block.content, [field]: e.target?.result as string });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const ImageControls = ({ field, currentSrc }: { field: string, currentSrc: string }) => {
+        const imageFileInputRef = useRef<HTMLInputElement>(null);
+        return (
+            <>
+                <div className="flex gap-2 mt-2">
+                    <Button variant="outline" size="sm" onClick={() => imageFileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload</Button>
+                    <Button variant="outline" size="sm" onClick={() => setIsImageGenOpen(true)}><Wand2 className="mr-2 h-4 w-4" /> Generate New</Button>
+                    <Button variant="outline" size="sm" onClick={() => setIsImageEditOpen(true)} disabled={!currentSrc}><Edit className="mr-2 h-4 w-4" /> Edit with AI</Button>
+                </div>
+                <input type="file" accept="image/*" ref={imageFileInputRef} onChange={handleImageUpload(field)} className="hidden" />
+                <GenerateImageDialog open={isImageGenOpen} onOpenChange={setIsImageGenOpen} onGenerate={handleGenerateImage(field)} />
+                <EditImageDialog open={isImageEditOpen} onOpenChange={setIsImageEditOpen} onGenerate={handleGenerateImage(field)} currentImage={currentSrc} />
+            </>
+        );
+    };
+
     const renderBlock = () => {
         switch (block.type) {
             case 'hero':
                 return (
                     <div className="space-y-4">
                         <div>
-                            <Label>Background Image URL</Label>
-                            <Input value={block.content.backgroundImageSrc || ''} onChange={(e) => onUpdate(block.id, { ...block.content, backgroundImageSrc: e.target.value })} placeholder="Image URL" />
-                            <div className="flex gap-2 mt-2">
-                                <Button variant="outline" size="sm" onClick={() => setIsImageGenOpen(true)}><Wand2 className="mr-2 h-4 w-4" /> Generate New</Button>
-                                <Button variant="outline" size="sm" onClick={() => setIsImageEditOpen(true)} disabled={!block.content.backgroundImageSrc}><Edit className="mr-2 h-4 w-4" /> Edit with AI</Button>
-                            </div>
-                            <GenerateImageDialog open={isImageGenOpen} onOpenChange={setIsImageGenOpen} onGenerate={handleGenerateImage('backgroundImageSrc')} />
-                            <EditImageDialog open={isImageEditOpen} onOpenChange={setIsImageEditOpen} onGenerate={handleGenerateImage('backgroundImageSrc')} currentImage={block.content.backgroundImageSrc} />
+                            <Label>Background Image</Label>
+                            <Input value={block.content.backgroundImageSrc?.startsWith('data:') ? 'Uploaded Image' : block.content.backgroundImageSrc || ''} onChange={(e) => onUpdate(block.id, { ...block.content, backgroundImageSrc: e.target.value })} placeholder="Image URL or upload" />
+                            <ImageControls field="backgroundImageSrc" currentSrc={block.content.backgroundImageSrc} />
                         </div>
                         <Separator />
                         <div className="space-y-2">
@@ -271,13 +299,8 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
             case 'image':
                 return (
                     <div>
-                        <Input value={block.content.src || ''} onChange={(e) => onUpdate(block.id, { ...block.content, src: e.target.value })} placeholder="Image URL" />
-                        <div className="flex gap-2 mt-2">
-                            <Button variant="outline" size="sm" onClick={() => setIsImageGenOpen(true)}><Wand2 className="mr-2 h-4 w-4" /> Generate New</Button>
-                            <Button variant="outline" size="sm" onClick={() => setIsImageEditOpen(true)} disabled={!block.content.src}><Edit className="mr-2 h-4 w-4" /> Edit with AI</Button>
-                        </div>
-                        <GenerateImageDialog open={isImageGenOpen} onOpenChange={setIsImageGenOpen} onGenerate={handleGenerateImage('src')} />
-                        <EditImageDialog open={isImageEditOpen} onOpenChange={setIsImageEditOpen} onGenerate={handleGenerateImage('src')} currentImage={block.content.src} />
+                        <Input value={block.content.src?.startsWith('data:') ? 'Uploaded Image' : block.content.src || ''} onChange={(e) => onUpdate(block.id, { ...block.content, src: e.target.value })} placeholder="Image URL or upload" />
+                        <ImageControls field="src" currentSrc={block.content.src} />
                     </div>
                 );
             case 'button':
@@ -292,19 +315,39 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                             <Input value={block.content.href || ''} onChange={(e) => onUpdate(block.id, { ...block.content, href: e.target.value })} placeholder="https://example.com" />
                             <p className="text-xs text-muted-foreground">If empty, button will open registration form.</p>
                         </div>
-                        <div className="flex items-center justify-between p-1 rounded-md bg-muted">
-                            <Label className="pl-2">Size</Label>
-                            <ToggleGroup type="single" size="sm" value={block.content.size || 'default'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, size: value})}>
-                               <ToggleGroupItem value="sm" aria-label="Small">S</ToggleGroupItem>
-                               <ToggleGroupItem value="default" aria-label="Default">M</ToggleGroupItem>
-                               <ToggleGroupItem value="lg" aria-label="Large">L</ToggleGroupItem>
-                           </ToggleGroup>
-                           <Label className="pl-2">Alignment</Label>
-                           <ToggleGroup type="single" size="sm" value={block.content.alignment || 'left'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, alignment: value})}>
-                               <ToggleGroupItem value="left" aria-label="Align left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
-                               <ToggleGroupItem value="center" aria-label="Align center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
-                               <ToggleGroupItem value="right" aria-label="Align right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
-                           </ToggleGroup>
+                        <div className="p-2 rounded-md bg-muted space-y-3">
+                             <div className="flex items-center justify-between">
+                                <Label className="pl-1">Variant</Label>
+                                 <Select value={block.content.variant || 'default'} onValueChange={(value) => onUpdate(block.id, {...block.content, variant: value})}>
+                                     <SelectTrigger className="w-[120px]">
+                                         <SelectValue />
+                                     </SelectTrigger>
+                                     <SelectContent>
+                                         <SelectItem value="default">Primary</SelectItem>
+                                         <SelectItem value="secondary">Secondary</SelectItem>
+                                         <SelectItem value="outline">Outline</SelectItem>
+                                         <SelectItem value="destructive">Destructive</SelectItem>
+                                         <SelectItem value="ghost">Ghost</SelectItem>
+                                         <SelectItem value="link">Link</SelectItem>
+                                     </SelectContent>
+                                 </Select>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <Label className="pl-1">Size</Label>
+                                <ToggleGroup type="single" size="sm" value={block.content.size || 'default'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, size: value})}>
+                                   <ToggleGroupItem value="sm" aria-label="Small">S</ToggleGroupItem>
+                                   <ToggleGroupItem value="default" aria-label="Default">M</ToggleGroupItem>
+                                   <ToggleGroupItem value="lg" aria-label="Large">L</ToggleGroupItem>
+                               </ToggleGroup>
+                            </div>
+                           <div className="flex items-center justify-between">
+                                <Label className="pl-1">Alignment</Label>
+                               <ToggleGroup type="single" size="sm" value={block.content.alignment || 'left'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, alignment: value})}>
+                                   <ToggleGroupItem value="left" aria-label="Align left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
+                                   <ToggleGroupItem value="center" aria-label="Align center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
+                                   <ToggleGroupItem value="right" aria-label="Align right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
+                               </ToggleGroup>
+                           </div>
                         </div>
                     </div>
                 );
@@ -369,7 +412,7 @@ export function Editor({ event: initialEvent }: { event: Event }) {
       case 'heading': newBlock.content = { text: 'New Heading', level: 'h2', alignment: 'left' }; break;
       case 'text': newBlock.content = { text: 'New paragraph text.', alignment: 'left' }; break;
       case 'image': newBlock.content = { src: 'https://picsum.photos/1200/500', alt: 'Placeholder' }; break;
-      case 'button': newBlock.content = { text: 'Click Me', alignment: 'left', size: 'default' }; break;
+      case 'button': newBlock.content = { text: 'Click Me', alignment: 'left', size: 'default', variant: 'default' }; break;
     }
     setEvent(prev => ({ ...prev, content: [...(prev.content || []), newBlock] }));
   };
