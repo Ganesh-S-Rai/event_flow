@@ -18,6 +18,13 @@ export type Lead = {
   registrationDate: string;
 };
 
+export type Template = {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+};
+
 const events: Event[] = [
   {
     id: 'evt-001',
@@ -87,6 +94,27 @@ const getLeadsForEvent = (event: Event, count: number): Lead[] => {
 
 const leads: Lead[] = events.flatMap(event => getLeadsForEvent(event, event.registrations));
 
+const templates: Template[] = [
+    {
+      id: 'tpl-001',
+      name: 'Modern Conference',
+      description: 'A sleek, professional template for tech conferences and corporate events.',
+      imageUrl: 'https://picsum.photos/seed/tpl1/600/400',
+    },
+    {
+      id: 'tpl-002',
+      name: 'Creative Workshop',
+      description: 'A vibrant and artistic template perfect for workshops and creative gatherings.',
+      imageUrl: 'https://picsum.photos/seed/tpl2/600/400',
+    },
+    {
+      id: 'tpl-003',
+      name: 'Community Meetup',
+      description: 'A friendly and inviting template for local meetups and community-driven events.',
+      imageUrl: 'https://picsum.photos/seed/tpl3/600/400',
+    },
+  ];
+
 export const getEvents = async (): Promise<Event[]> => {
   return Promise.resolve(events);
 };
@@ -97,4 +125,8 @@ export const getLeads = async (): Promise<Lead[]> => {
 
 export const getEventById = async (id: string): Promise<Event | undefined> => {
   return Promise.resolve(events.find(e => e.id === id));
+};
+
+export const getTemplates = async (): Promise<Template[]> => {
+    return Promise.resolve(templates);
 };
