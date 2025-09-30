@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import type { Event } from '@/lib/data';
+import Link from 'next/link';
 
 const statusVariantMap: Record<Event['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
   Active: 'default',
@@ -108,7 +109,9 @@ export const columns: ColumnDef<Event>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>View landing page</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/events/${event.id}`}>View landing page</Link>
+              </DropdownMenuItem>
               <DropdownMenuItem>View registrations</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Edit</DropdownMenuItem>
