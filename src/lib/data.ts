@@ -22,6 +22,7 @@ export type Lead = {
   eventName: string;
   status: 'New' | 'Contacted' | 'Converted' | 'Lost';
   registrationDate: string;
+  registrationDetails?: { [key: string]: string };
 };
 
 export type Template = {
