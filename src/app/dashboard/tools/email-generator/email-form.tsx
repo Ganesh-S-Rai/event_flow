@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import {
   Card,
   CardContent,
@@ -67,7 +67,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
-  const [state, formAction] = useFormState(generateEmailAction, {
+  const [state, formAction] = useActionState(generateEmailAction, {
     message: '',
   });
 

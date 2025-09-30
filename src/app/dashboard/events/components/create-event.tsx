@@ -17,7 +17,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createEventAction } from '../actions';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Loader2 } from 'lucide-react';
 
 function SubmitButton() {
@@ -34,7 +35,7 @@ export function CreateEvent() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
-  const [state, formAction] = useFormState(createEventAction, {
+  const [state, formAction] = useActionState(createEventAction, {
     message: '',
   });
 

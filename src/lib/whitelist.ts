@@ -14,7 +14,7 @@ const WHITELISTED_USERS: string[] = [
  * @returns True if the user is allowed, false otherwise.
  */
 export function isUserWhitelisted(email: string): boolean {
-    if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+    if (!email.toLowerCase().endsWith(`@${ALLOWED_DOMAIN}`)) {
         return false;
     }
     
