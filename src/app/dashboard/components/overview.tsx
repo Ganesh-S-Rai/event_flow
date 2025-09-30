@@ -2,8 +2,9 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 
-const data = [
+const generateData = () => [
   { name: 'Jan', total: Math.floor(Math.random() * 5000) + 1000 },
   { name: 'Feb', total: Math.floor(Math.random() * 5000) + 1000 },
   { name: 'Mar', total: Math.floor(Math.random() * 5000) + 1000 },
@@ -19,6 +20,29 @@ const data = [
 ];
 
 export function Overview() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setData(generateData());
+  }, []);
+
+  if (data.length === 0) {
+    return (
+       <Card className="h-full">
+        <CardHeader>
+          <CardTitle>Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="pl-2">
+            <ResponsiveContainer width="100%" height={350}>
+                <div className="h-full w-full flex items-center justify-center">
+                    <p>Loading chart data...</p>
+                </div>
+            </ResponsiveContainer>
+        </CardContent>
+       </Card>
+    )
+  }
+
   return (
     <Card className="h-full">
       <CardHeader>
