@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-import { Calendar, MapPin, Ticket, Plus, Trash2 } from 'lucide-react';
+import { Calendar, MapPin, Ticket, Plus, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import {
   Accordion,
@@ -16,6 +17,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // --- Types ---
 type Speaker = {
@@ -31,6 +35,66 @@ type AgendaItem = {
   title: string;
   description: string;
 };
+
+function RegistrationForm({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-2xl">
+                 <DialogHeader>
+                    <DialogTitle>Tell us about you</DialogTitle>
+                </DialogHeader>
+                <form className="space-y-6 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="first-name">First Name</Label>
+                            <Input id="first-name" placeholder="First Name" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="last-name">Last Name</Label>
+                            <Input id="last-name" placeholder="Last Name" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="work-email">Work Email</Label>
+                            <Input id="work-email" type="email" placeholder="Work Email" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="company-name">Company Name</Label>
+                            <Input id="company-name" placeholder="Company Name" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="phone-number">Phone Number</Label>
+                            <Input id="phone-number" type="tel" placeholder="Phone Number" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="designation">Designation</Label>
+                            <Input id="designation" placeholder="Designation" />
+                        </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="breakout-sessions">Interested in individual breakout sessions (Leave blank if not)</Label>
+                        <Select>
+                            <SelectTrigger id="breakout-sessions">
+                                <SelectValue placeholder="Select a session..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="session-1">Session 1: AI in Marketing</SelectItem>
+                                <SelectItem value="session-2">Session 2: Future of E-commerce</SelectItem>
+                                <SelectItem value="session-3">Session 3: Developer Tools</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                        <Checkbox id="consent" defaultChecked />
+                        <Label htmlFor="consent" className="text-sm text-muted-foreground font-normal">
+                            By submitting your information, you consent to us contacting you about our content, products, and services and agree to our <Link href="#" className="underline text-primary">privacy policy</Link>.
+                        </Label>
+                    </div>
+                    <Button type="submit" className="w-full">Submit</Button>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 function LandingPagePreview({
   heroTitle,
@@ -58,9 +122,12 @@ function LandingPagePreview({
     date: '2024-10-26',
     location: 'San Francisco, CA',
   };
+  
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   return (
     <div className="bg-background text-foreground border rounded-lg overflow-y-auto w-[125%] h-[125%] origin-top-left scale-[0.8]">
+      <RegistrationForm open={isFormOpen} onOpenChange={setIsFormOpen} />
       <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-20 border-b">
         <Link
           href="#"
@@ -71,7 +138,7 @@ function LandingPagePreview({
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Button asChild>
-            <Link href="#register">
+            <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>
               <Ticket className="mr-2" />
               {heroCta || 'Register Now'}
             </Link>
@@ -110,7 +177,7 @@ function LandingPagePreview({
               </div>
             </div>
             <Button asChild size="lg">
-              <Link href="#register">{heroCta || 'Register Today'}</Link>
+              <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>{heroCta || 'Register Today'}</Link>
             </Button>
           </div>
         </section>
@@ -180,8 +247,11 @@ function LandingPagePreview({
                 Register Now
               </h2>
               <p className="mt-4 text-muted-foreground md:text-xl">
-                Secure your spot. The RSVP form will be here.
+                Secure your spot. Click the button to get started.
               </p>
+                <Button size="lg" className="mt-6" onClick={() => setIsFormOpen(true)}>
+                    Register Today
+                </Button>
             </div>
           </div>
         </section>
