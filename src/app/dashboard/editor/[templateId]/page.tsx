@@ -1,5 +1,4 @@
 
-
 import { getEventById } from '@/lib/data';
 import { Editor } from './editor';
 import { notFound } from 'next/navigation';

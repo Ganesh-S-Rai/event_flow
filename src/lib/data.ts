@@ -104,7 +104,20 @@ export const getEventById = async (id: string): Promise<Event | undefined> => {
         if (docSnap.exists()) {
             return { id: docSnap.id, ...docSnap.data() } as Event;
         } else {
-            console.log("No such document!");
+            // Check if it's a template ID
+            const template = templates.find(t => t.id === id);
+            if (template) {
+                return {
+                    id: template.id,
+                    name: template.name,
+                    description: template.description,
+                    date: new Date().toISOString(),
+                    location: 'Online',
+                    registrations: 0,
+                    status: 'Draft',
+                };
+            }
+            console.log("No such document or template!");
             return undefined;
         }
     } catch (error) {
