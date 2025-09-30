@@ -30,6 +30,7 @@ export function DashboardNav() {
 
   const isToolsActive = pathname.startsWith('/dashboard/tools');
   const isTemplatesActive = pathname.startsWith('/dashboard/templates');
+  const isSettingsActive = pathname.startsWith('/dashboard/settings');
 
   return (
     <SidebarMenu>
@@ -37,6 +38,7 @@ export function DashboardNav() {
         const isActive =
           (item.href === '/dashboard/tools' && isToolsActive) ||
           (item.href === '/dashboard/templates' && isTemplatesActive) ||
+          (item.href === '/dashboard/settings' && isSettingsActive) ||
           pathname === item.href;
         
         return (
