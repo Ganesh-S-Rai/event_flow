@@ -21,13 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { generateEmailAction } from './actions';
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { generateEmailAction, sendTestEmailAction } from './actions';
+import { useActionState, useEffect, useRef, useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Copy, Wand2, Loader2, ClipboardCheck } from 'lucide-react';
+import { Copy, Wand2, Loader2, ClipboardCheck, Send } from 'lucide-react';
 import type { Event } from '@/lib/data';
+import { Separator } from '@/components/ui/separator';
 
-function SubmitButton() {
+function GenerateButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full">
@@ -39,6 +40,20 @@ function SubmitButton() {
       Generate Email
     </Button>
   );
+}
+
+function SendTestButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} size="sm">
+             {pending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+             ) : (
+                <Send className="mr-2 h-4 w-4" />
+             )}
+            Send Test
+        </Button>
+    )
 }
 
 function CopyButton({ textToCopy }: { textToCopy: string }) {
@@ -68,24 +83,40 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
-  const [state, formAction] = useActionState(generateEmailAction, {
+  const [generateState, generateFormAction] = useActionState(generateEmailAction, {
     message: '',
   });
 
+  const [sendState, sendFormAction] = useActionState(sendTestEmailAction, {
+    sendTestMessage: '',
+  });
+
+  const generatedData = useMemo(() => generateState.data, [generateState]);
+
   useEffect(() => {
-    if (state.message && state.message.startsWith('Error:')) {
+    if (generateState.message && generateState.message.startsWith('Error:')) {
       toast({
         variant: 'destructive',
         title: 'Generation Failed',
-        description: state.issues?.[0] || 'Please review your inputs.',
+        description: generateState.issues?.[0] || 'Please review your inputs.',
       });
-    } else if (state.message && state.data) {
+    } else if (generateState.message && generateState.data) {
       toast({
         title: 'Generation Successful',
         description: 'Your email copy is ready.',
       });
     }
-  }, [state, toast]);
+  }, [generateState, toast]);
+
+  useEffect(() => {
+    if (sendState.sendTestMessage) {
+      toast({
+        variant: sendState.sendTestSuccess ? 'default' : 'destructive',
+        title: sendState.sendTestSuccess ? 'Success' : 'Error',
+        description: sendState.sendTestMessage,
+      });
+    }
+  }, [sendState, toast]);
 
   const handleEventChange = (eventId: string) => {
     const event = events.find((e) => e.id === eventId);
@@ -107,7 +138,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <form ref={formRef} action={formAction}>
+      <form ref={formRef} action={generateFormAction}>
         <Card>
           <CardHeader>
             <CardTitle>Event Details</CardTitle>
@@ -137,7 +168,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                 id="eventName"
                 name="eventName"
                 placeholder="e.g., InnovateX 2024"
-                defaultValue={state.fields?.eventName}
+                defaultValue={generateState.fields?.eventName}
                 key={selectedEvent?.id ? `name-${selectedEvent.id}`: 'name-new'}
               />
             </div>
@@ -148,7 +179,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                   id="eventDate"
                   name="eventDate"
                   placeholder="e.g., October 26, 2024"
-                  defaultValue={state.fields?.eventDate}
+                  defaultValue={generateState.fields?.eventDate}
                   key={selectedEvent?.id ? `date-${selectedEvent.id}`: 'date-new'}
                 />
               </div>
@@ -158,7 +189,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                   id="eventLocation"
                   name="eventLocation"
                   placeholder="e.g., San Francisco, CA"
-                  defaultValue={state.fields?.eventLocation}
+                  defaultValue={generateState.fields?.eventLocation}
                   key={selectedEvent?.id ? `location-${selectedEvent.id}`: 'location-new'}
                 />
               </div>
@@ -169,7 +200,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                 id="eventDescription"
                 name="eventDescription"
                 placeholder="Describe your event in a few sentences."
-                defaultValue={state.fields?.eventDescription}
+                defaultValue={generateState.fields?.eventDescription}
                 key={selectedEvent?.id ? `description-${selectedEvent.id}`: 'description-new'}
               />
             </div>
@@ -179,7 +210,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                 id="targetAudience"
                 name="targetAudience"
                 placeholder="e.g., Tech professionals, students"
-                defaultValue={state.fields?.targetAudience}
+                defaultValue={generateState.fields?.targetAudience}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -189,12 +220,12 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                   id="callToAction"
                   name="callToAction"
                   placeholder="e.g., Register Now"
-                  defaultValue={state.fields?.callToAction}
+                  defaultValue={generateState.fields?.callToAction}
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="tone">Tone</Label>
-                <Select name="tone" defaultValue={state.fields?.tone}>
+                <Select name="tone" defaultValue={generateState.fields?.tone}>
                   <SelectTrigger id="tone">
                     <SelectValue placeholder="Select a tone" />
                   </SelectTrigger>
@@ -210,47 +241,63 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
             </div>
           </CardContent>
           <CardFooter>
-            <SubmitButton />
+            <GenerateButton />
           </CardFooter>
         </Card>
       </form>
       <div className="space-y-4">
-        <Card className="min-h-[600px]">
+        <Card className="min-h-[600px] flex flex-col">
           <CardHeader>
             <CardTitle>Generated Email</CardTitle>
             <CardDescription>
-              Here is the AI-generated email copy. You can copy it or request a new one.
+              Here is the AI-generated email copy. You can copy it or send a test.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 flex-grow">
             <div className="grid gap-2">
                 <div className="flex justify-between items-center">
                     <Label htmlFor="emailSubject">Subject</Label>
-                    {state.data?.emailSubject && <CopyButton textToCopy={state.data.emailSubject} />}
+                    {generatedData?.emailSubject && <CopyButton textToCopy={generatedData.emailSubject} />}
                 </div>
               <Input
                 id="emailSubject"
                 readOnly
-                value={state.data?.emailSubject || ''}
+                value={generatedData?.emailSubject || ''}
                 placeholder="Your generated subject line will appear here."
               />
             </div>
             <div className="grid gap-2">
               <div className="flex justify-between items-center">
                     <Label htmlFor="emailBody">Body</Label>
-                    {state.data?.emailBody && <CopyButton textToCopy={state.data.emailBody} />}
+                    {generatedData?.emailBody && <CopyButton textToCopy={generatedData.emailBody} />}
                 </div>
                 <div 
                     className="min-h-[350px] w-full rounded-md border border-input bg-background/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {state.data?.emailBody ? (
-                        <div dangerouslySetInnerHTML={{ __html: state.data.emailBody }} />
+                    {generatedData?.emailBody ? (
+                        <div dangerouslySetInnerHTML={{ __html: generatedData.emailBody }} />
                     ) : (
                         <p className="text-muted-foreground">Your generated email body will appear here.</p>
                     )}
                 </div>
             </div>
           </CardContent>
+            {generatedData?.emailBody && (
+                <>
+                <Separator />
+                 <CardFooter className="flex-col items-start gap-4">
+                    <h3 className="font-semibold text-sm">Send a Test</h3>
+                    <form action={sendFormAction} className="w-full space-y-2">
+                        <input type="hidden" name="subject" value={generatedData.emailSubject} />
+                        <input type="hidden" name="body" value={generatedData.emailBody} />
+                        <div className="flex w-full items-center gap-2">
+                            <Input name="toEmail" type="email" placeholder="Recipient's Email Address" required className="flex-1"/>
+                            <SendTestButton />
+                        </div>
+                    </form>
+                </CardFooter>
+                </>
+            )}
         </Card>
       </div>
     </div>

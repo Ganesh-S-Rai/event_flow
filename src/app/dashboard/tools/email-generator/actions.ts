@@ -1,3 +1,4 @@
+
 'use server';
 
 import {
@@ -5,9 +6,10 @@ import {
   type GenerateMarketingEmailInput,
   type GenerateMarketingEmailOutput,
 } from '@/ai/flows/generate-marketing-email';
+import { sendMarketingEmail } from '@/ai/flows/send-marketing-email-flow';
 import { z } from 'zod';
 
-const GenerateMarketingEmailInputSchema = z.object({
+const GenerateEmailSchema = z.object({
   eventName: z.string().min(1, 'Event name is required.'),
   eventDate: z.string().min(1, 'Event date is required.'),
   eventLocation: z.string().min(1, 'Event location is required.'),
@@ -17,18 +19,29 @@ const GenerateMarketingEmailInputSchema = z.object({
   tone: z.string().min(1, 'Tone is required.'),
 });
 
-type FormState = {
+const SendTestEmailSchema = z.object({
+  toEmail: z.string().email('Please enter a valid email address.'),
+  subject: z.string().min(1, 'Subject cannot be empty.'),
+  body: z.string().min(1, 'Body cannot be empty.'),
+});
+
+type GenerateFormState = {
   message: string;
   fields?: Record<string, string>;
   issues?: string[];
   data?: GenerateMarketingEmailOutput;
 };
 
+type SendFormState = {
+    sendTestMessage: string;
+    sendTestSuccess?: boolean;
+};
+
 export async function generateEmailAction(
-  prevState: FormState,
+  prevState: GenerateFormState,
   formData: FormData
-): Promise<FormState> {
-  const validatedFields = GenerateMarketingEmailInputSchema.safeParse(
+): Promise<GenerateFormState> {
+  const validatedFields = GenerateEmailSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
 
@@ -57,4 +70,28 @@ export async function generateEmailAction(
       message: 'An unexpected error occurred while generating the email.',
     };
   }
+}
+
+export async function sendTestEmailAction(
+    prevState: SendFormState,
+    formData: FormData
+): Promise<SendFormState> {
+    const validatedFields = SendTestEmailSchema.safeParse(Object.fromEntries(formData));
+
+    if (!validatedFields.success) {
+        return {
+            sendTestMessage: 'Error: ' + validatedFields.error.flatten().fieldErrors.toEmail?.[0] || 'Invalid input.',
+            sendTestSuccess: false,
+        };
+    }
+
+    try {
+        const result = await sendMarketingEmail(validatedFields.data);
+        if (!result.success) {
+           return { sendTestMessage: `Error: ${result.message}`, sendTestSuccess: false };
+        }
+        return { sendTestMessage: 'Test email sent successfully!', sendTestSuccess: true };
+    } catch (error: any) {
+        return { sendTestMessage: `Error: ${error.message || 'An unknown error occurred.'}`, sendTestSuccess: false };
+    }
 }

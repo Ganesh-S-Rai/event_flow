@@ -16,16 +16,20 @@ const configPath = path.join(process.cwd(), 'src', 'lib', 'config.json');
  * Reads the current configuration from config.json.
  * If the file doesn't exist, it returns a default config.
  */
-export async function getConfig(): Promise<AppConfig> {
+export async function getConfig(showPrivateKey: boolean = false): Promise<AppConfig> {
   noStore();
   try {
     const fileContent = await fs.readFile(configPath, 'utf-8');
     const currentConfig = JSON.parse(fileContent);
 
-    // Only return non-sensitive parts or indicators that a key exists
-    return {
-      netcoreApiKey: currentConfig.netcoreApiKey ? '********' : '',
-    };
+    // If not explicitly asked for, hide the private key.
+    if (!showPrivateKey) {
+      return {
+        netcoreApiKey: currentConfig.netcoreApiKey ? '********' : '',
+      };
+    }
+    
+    return currentConfig;
 
   } catch (error: any) {
     if (error.code === 'ENOENT') {
