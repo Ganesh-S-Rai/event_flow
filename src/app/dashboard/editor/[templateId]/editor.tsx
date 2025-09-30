@@ -264,8 +264,8 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
     const handleImageUpload = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            if (file.size > 1024 * 1024) { // 1MB size limit
-                toast({ variant: 'destructive', title: 'Error', description: 'Image size should be less than 1MB.' });
+            if (file.size > 4 * 1024 * 1024) { // 4MB size limit
+                toast({ variant: 'destructive', title: 'Error', description: 'Image size should be less than 4MB.' });
                 return;
             }
             const reader = new FileReader();
@@ -283,7 +283,6 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                     <div className="space-y-4">
                         <div>
                             <Label>Background Image</Label>
-                            <Input value={block.content.backgroundImageSrc?.startsWith('data:') ? 'Uploaded Image' : block.content.backgroundImageSrc || ''} onChange={(e) => onUpdate(block.id, { ...block.content, backgroundImageSrc: e.target.value })} placeholder="Image URL or upload" />
                              <ImageControls
                                 field="backgroundImageSrc"
                                 currentSrc={block.content.backgroundImageSrc}
@@ -301,13 +300,40 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                                 <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText('headline')} currentText={block.content.headline} />
                             </div>
                         </div>
-                        <div className="space-y-2">
+                         <div className="space-y-2">
                             <Label>Subtext</Label>
                             <Textarea value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} rows={3} />
                         </div>
+                        <Separator />
                         <div className="space-y-2">
-                            <Label>Button Text</Label>
-                            <Input value={block.content.buttonText || ''} onChange={(e) => onUpdate(block.id, { ...block.content, buttonText: e.target.value })} />
+                            <Label>Button</Label>
+                            <Input value={block.content.buttonText || ''} onChange={(e) => onUpdate(block.id, { ...block.content, buttonText: e.target.value })} placeholder="Button Text" />
+                             <div className="p-2 mt-2 rounded-md bg-muted space-y-3">
+                                 <div className="flex items-center justify-between">
+                                    <Label className="pl-1 text-xs">Variant</Label>
+                                     <Select value={block.content.buttonVariant || 'default'} onValueChange={(value) => onUpdate(block.id, {...block.content, buttonVariant: value})}>
+                                         <SelectTrigger className="w-[120px] h-8 text-xs">
+                                             <SelectValue />
+                                         </SelectTrigger>
+                                         <SelectContent>
+                                             <SelectItem value="default">Primary</SelectItem>
+                                             <SelectItem value="secondary">Secondary</SelectItem>
+                                             <SelectItem value="outline">Outline</SelectItem>
+                                             <SelectItem value="destructive">Destructive</SelectItem>
+                                             <SelectItem value="ghost">Ghost</SelectItem>
+                                             <SelectItem value="link">Link</SelectItem>
+                                         </SelectContent>
+                                     </Select>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <Label className="pl-1 text-xs">Size</Label>
+                                    <ToggleGroup type="single" size="sm" value={block.content.buttonSize || 'default'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, buttonSize: value})}>
+                                       <ToggleGroupItem value="sm" aria-label="Small">S</ToggleGroupItem>
+                                       <ToggleGroupItem value="default" aria-label="Default">M</ToggleGroupItem>
+                                       <ToggleGroupItem value="lg" aria-label="Large">L</ToggleGroupItem>
+                                    </ToggleGroup>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
@@ -398,7 +424,7 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                                    <ToggleGroupItem value="sm" aria-label="Small">S</ToggleGroupItem>
                                    <ToggleGroupItem value="default" aria-label="Default">M</ToggleGroupItem>
                                    <ToggleGroupItem value="lg" aria-label="Large">L</ToggleGroupItem>
-                               </ToggleGroup>
+                                </ToggleGroup>
                             </div>
                            <div className="flex items-center justify-between">
                                 <Label className="pl-1">Alignment</Label>
@@ -468,10 +494,19 @@ export function Editor({ event: initialEvent }: { event: Event }) {
     };
     // Initialize with default content based on type
     switch (type) {
-      case 'hero': newBlock.content = { headline: 'Your Event Headline', text: 'Engaging subtext about your event.', buttonText: 'Register Now', backgroundImageSrc: 'https://picsum.photos/1200/800' }; break;
+        case 'hero': 
+            newBlock.content = { 
+                headline: 'Your Event Headline', 
+                text: 'Engaging subtext about your event.', 
+                buttonText: 'Register Now', 
+                backgroundImageSrc: 'https://picsum.photos/seed/hero/1200/800',
+                buttonVariant: 'default',
+                buttonSize: 'lg',
+            }; 
+            break;
       case 'heading': newBlock.content = { text: 'New Heading', level: 'h2', alignment: 'left' }; break;
       case 'text': newBlock.content = { text: 'New paragraph text.', alignment: 'left' }; break;
-      case 'image': newBlock.content = { src: 'https://picsum.photos/1200/500', alt: 'Placeholder' }; break;
+      case 'image': newBlock.content = { src: 'https://picsum.photos/seed/image/1200/500', alt: 'Placeholder' }; break;
       case 'button': newBlock.content = { text: 'Click Me', alignment: 'left', size: 'default', variant: 'default' }; break;
     }
     setEvent(prev => ({ ...prev, content: [...(prev.content || []), newBlock] }));

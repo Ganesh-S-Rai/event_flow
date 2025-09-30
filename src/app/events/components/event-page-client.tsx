@@ -168,7 +168,13 @@ function RenderBlock({ block, onButtonClick }: { block: Block; onButtonClick?: (
                     <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">{content.headline}</h1>
                     <p className="text-lg md:text-xl/relaxed max-w-2xl mx-auto">{content.text}</p>
                     {content.buttonText && (
-                        <Button size="lg" onClick={onButtonClick}>{content.buttonText}</Button>
+                        <Button 
+                            size={content.buttonSize || 'lg'}
+                            variant={content.buttonVariant || 'default'}
+                            onClick={onButtonClick}
+                        >
+                            {content.buttonText}
+                        </Button>
                     )}
                 </div>
             </section>
