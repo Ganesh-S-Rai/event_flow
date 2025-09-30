@@ -39,7 +39,7 @@ function LandingPagePreview({
   };
 
   return (
-    <div className="bg-background text-foreground border rounded-lg overflow-hidden scale-[0.9] origin-top-left">
+    <div className="bg-background text-foreground border rounded-lg overflow-hidden scale-[0.8] origin-top-left w-[125%] h-[125%]">
       <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-20 border-b">
         <Link
           href="#"
@@ -59,7 +59,7 @@ function LandingPagePreview({
       </header>
       <main>
         {/* Hero Section */}
-        <section className="relative h-[40vh] flex items-center justify-center text-center text-primary-foreground">
+        <section className="relative h-[50vh] flex items-center justify-center text-center text-primary-foreground">
           <Image
             src="https://picsum.photos/seed/hero-event/1200/800"
             alt={event.name}
@@ -69,7 +69,7 @@ function LandingPagePreview({
           />
           <div className="absolute inset-0 bg-black/50 -z-10" />
           <div className="container px-4 md:px-6 space-y-4">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tighter">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">
               {event.name}
             </h1>
             <div className="flex items-center justify-center gap-4 md:gap-8 text-md">
@@ -98,10 +98,10 @@ function LandingPagePreview({
         <section className="py-12 md:py-16">
           <div className="container px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
                 About The Event
               </h2>
-              <p className="mt-4 text-muted-foreground md:text-lg">
+              <p className="mt-4 text-muted-foreground md:text-xl">
                 {event.description}
               </p>
             </div>
@@ -184,7 +184,7 @@ export default function EditorPage({
         </div>
 
         {/* Live Preview */}
-        <div className="lg:col-span-2 bg-muted/20 rounded-lg p-4 h-full overflow-hidden">
+        <div className="lg:col-span-2 bg-muted/20 rounded-lg h-full overflow-hidden">
             <div className="w-full h-full transform">
                 <LandingPagePreview title={heroTitle} description={heroDescription} cta={heroCta} />
             </div>
