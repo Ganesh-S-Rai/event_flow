@@ -1,12 +1,13 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-import { Calendar, MapPin, Ticket, Plus, Trash2, X, CheckCircle, Download } from 'lucide-react';
+import { Calendar, MapPin, Ticket, Plus, Trash2, X, CheckCircle, Download, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import {
   Accordion,
@@ -20,7 +21,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { registerLead, type RegisterLeadOutput } from '@/ai/flows/register-lead-flow';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { type Event } from '@/lib/data';
+import { publishEventAction } from './actions';
+import { Badge } from '@/components/ui/badge';
+import { useFormStatus } from 'react-dom';
+
 
 // --- Types ---
 type Speaker = {
@@ -359,42 +364,57 @@ function LandingPagePreview({
   );
 }
 
+const slugify = (text: string) =>
+  text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-'); // Replace multiple - with single -
+
+
+function PublishButton({status}: {status: Event['status']}) {
+  const { pending } = useFormStatus();
+  return (
+      <Button type="submit" disabled={pending}>
+          {pending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            status === 'Active' ? 'Update' : 'Publish'
+          )}
+      </Button>
+  );
+}
 
 export function Editor({
-  templateId,
+  event,
 }: {
-  templateId: string;
+  event: Event;
 }) {
-  // Hero States
-  const [heroTitle, setHeroTitle] = useState('InnovateX 2024');
-  const [heroCta, setHeroCta] = useState('Register Now');
-  const [heroImageUrl, setHeroImageUrl] = useState('https://picsum.photos/seed/hero-event/1200/800');
-
-
-  // About States
-  const [aboutTitle, setAboutTitle] = useState('About The Event');
+  const { toast } = useToast();
+  
+  // Page content states
+  const [heroTitle, setHeroTitle] = useState(event.heroTitle || 'InnovateX 2024');
+  const [heroCta, setHeroCta] = useState(event.heroCta || 'Register Now');
+  const [heroImageUrl, setHeroImageUrl] = useState(event.heroImageUrl || 'https://picsum.photos/seed/hero-event/1200/800');
+  const [aboutTitle, setAboutTitle] = useState(event.aboutTitle || 'About The Event');
   const [aboutDescription, setAboutDescription] = useState(
-    'This is where your event description will go. It should be exciting and informative, telling people why they should attend.'
+    event.aboutDescription || 'This is where your event description will go. It should be exciting and informative, telling people why they should attend.'
   );
-
-  // Speakers States
-  const [speakersTitle, setSpeakersTitle] = useState('Featured Speakers');
-  const [speakers, setSpeakers] = useState<Speaker[]>([
+  const [speakersTitle, setSpeakersTitle] = useState(event.speakersTitle || 'Featured Speakers');
+  const [speakers, setSpeakers] = useState<Speaker[]>(event.speakers || [
       { id: `spkr-${Date.now()}-1`, name: 'Jane Doe', title: 'CEO, TechCorp', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
       { id: `spkr-${Date.now()}-2`, name: 'John Smith', title: 'Lead Engineer, Innovate LLC', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e290267072' },
       { id: `spkr-${Date.now()}-3`, name: 'Alex Johnson', title: 'Product Manager, Solutions Inc.', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026705f' },
   ]);
-
-  // Agenda States
-  const [agendaTitle, setAgendaTitle] = useState('Event Agenda');
-  const [agenda, setAgenda] = useState<AgendaItem[]>([
+  const [agendaTitle, setAgendaTitle] = useState(event.agendaTitle || 'Event Agenda');
+  const [agenda, setAgenda] = useState<AgendaItem[]>(event.agenda || [
       { id: `ag-${Date.now()}-1`, time: '9:00 AM', title: 'Registration & Coffee', description: 'Doors open for registration. Grab some coffee and network.'},
       { id: `ag-${Date.now()}-2`, time: '10:00 AM', title: 'Opening Keynote', description: 'Join Jane Doe for an inspiring start to the day.' },
       { id: `ag-${Date.now()}-3`, time: '11:00 AM', title: 'The Future of AI', description: 'A deep dive session with John Smith.' },
   ]);
-
-  // Form Field States
-  const [formFields, setFormFields] = useState<FormField[]>([
+  const [formFields, setFormFields] = useState<FormField[]>(event.formFields || [
       { id: 'ff-1', label: 'First Name', type: 'text', placeholder: 'First Name' },
       { id: 'ff-2', label: 'Last Name', type: 'text', placeholder: 'Last Name' },
       { id: 'ff-3', label: 'Work Email', type: 'email', placeholder: 'Work Email' },
@@ -404,69 +424,126 @@ export function Editor({
       { id: 'ff-7', label: 'Interested in breakout sessions (Optional)', type: 'select', placeholder: 'Select a session...', options: ['Session 1: AI in Marketing', 'Session 2: Future of E-commerce', 'Session 3: Developer Tools'] },
   ]);
 
+  // Publish settings states
+  const [slug, setSlug] = useState(event.slug || slugify(heroTitle));
+  const [status, setStatus] = useState<Event['status']>(event.status || 'Draft');
+
+  const [state, formAction] = useActionState(publishEventAction, { message: '' });
+
+  useEffect(() => {
+    if (state.message) {
+      if(state.message.startsWith('Error')) {
+        toast({ variant: 'destructive', title: 'Error', description: state.issues?.[0] || 'An unknown error occurred.' });
+      } else {
+        toast({ title: 'Success', description: state.message });
+        if (state.data?.status) {
+          setStatus(state.data.status);
+        }
+      }
+    }
+  }, [state, toast]);
+  
+
+  useEffect(() => {
+    if (event.name === heroTitle) return; // Prevent slug update on initial load
+    setSlug(slugify(heroTitle));
+  }, [heroTitle, event.name]);
+
   const handleSpeakerChange = (id: string, field: keyof Omit<Speaker, 'id'>, value: string) => {
     setSpeakers(speakers.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
-
   const addSpeaker = () => {
     const newId = `spkr-${Date.now()}`;
     setSpeakers([...speakers, { id: newId, name: 'New Speaker', title: 'Title', avatarUrl: `https://i.pravatar.cc/150?u=${newId}` }]);
   };
-  
   const removeSpeaker = (id: string) => {
     setSpeakers(speakers.filter(s => s.id !== id));
   };
-  
   const handleAgendaChange = (id: string, field: keyof Omit<AgendaItem, 'id'>, value: string) => {
     setAgenda(agenda.map(a => a.id === id ? { ...a, [field]: value } : a));
   };
-  
   const addAgendaItem = () => {
     setAgenda([...agenda, { id: `ag-${Date.now()}`, time: '12:00 PM', title: 'New Session', description: 'Details about this session.' }]);
   };
-
   const removeAgendaItem = (id: string) => {
     setAgenda(agenda.filter(a => a.id !== id));
   };
-
   const handleFormFieldChange = (id: string, field: keyof Omit<FormField, 'id' | 'options' | 'type'>, value: string) => {
     setFormFields(formFields.map(f => f.id === id ? { ...f, [field]: value } : f));
   };
-
   const handleFormFieldOptionsChange = (id: string, value: string) => {
     const options = value.split(',').map(opt => opt.trim());
     setFormFields(formFields.map(f => f.id === id ? { ...f, options } : f));
   }
-
   const handleFormFieldTypeChange = (id: string, type: FormField['type']) => {
     setFormFields(formFields.map(f => f.id === id ? { ...f, type } : f));
   }
-
   const addFormField = () => {
     setFormFields([...formFields, { id: `ff-${Date.now()}`, label: 'New Field', type: 'text', placeholder: 'New Field Placeholder' }]);
   }
-
   const removeFormField = (id: string) => {
     setFormFields(formFields.filter(f => f.id !== id));
   }
 
   return (
-    <div className="space-y-4 h-full">
+    <form action={formAction} className="space-y-4 h-full">
+      {/* Hidden inputs to pass all state to the server action */}
+      <input type="hidden" name="eventId" value={event.id} />
+      <input type="hidden" name="heroTitle" value={heroTitle} />
+      <input type="hidden" name="heroCta" value={heroCta} />
+      <input type="hidden" name="heroImageUrl" value={heroImageUrl} />
+      <input type="hidden" name="aboutTitle" value={aboutTitle} />
+      <input type="hidden" name="aboutDescription" value={aboutDescription} />
+      <input type="hidden" name="speakersTitle" value={speakersTitle} />
+      <input type="hidden" name="speakers" value={JSON.stringify(speakers)} />
+      <input type="hidden" name="agendaTitle" value={agendaTitle} />
+      <input type="hidden" name="agenda" value={JSON.stringify(agenda)} />
+      <input type="hidden" name="formFields" value={JSON.stringify(formFields)} />
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
             Landing Page Editor
           </h2>
           <p className="text-muted-foreground">
-            Editing template: {templateId}
+            Editing template for: <span className="font-semibold text-foreground">{event.name}</span>
           </p>
         </div>
-        <Button>Publish</Button>
+        <div className="flex items-center gap-2">
+            <Badge variant={status === 'Active' ? 'default' : 'secondary'}>{status}</Badge>
+            <PublishButton status={status}/>
+        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
         {/* Editor Form */}
         <div className="lg:col-span-1 overflow-y-auto pr-4">
-          <Accordion type="multiple" className="w-full">
+          <Accordion type="multiple" className="w-full" defaultValue={['item-1', 'item-6']}>
+             <AccordionItem value="item-6">
+              <AccordionTrigger>
+                <h3 className="text-lg font-medium">Publish Settings</h3>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 p-1">
+                  <div className="space-y-2">
+                    <Label htmlFor="slug">URL Slug</Label>
+                    <div className="flex items-center rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                        <span className="pl-3 text-sm text-muted-foreground">/</span>
+                        <Input
+                          id="slug"
+                          name="slug"
+                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          value={slug}
+                          onChange={(e) => setSlug(e.target.value)}
+                        />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        Your page will be available at: <br />
+                        <span className="font-mono bg-muted/80 p-1 rounded-sm">https://netcorecloud.com/{slug}</span>
+                    </p>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="item-1">
               <AccordionTrigger>
                 <h3 className="text-lg font-medium">Hero Section</h3>
@@ -657,7 +734,7 @@ export function Editor({
         <div className="lg:col-span-2 bg-muted/20 rounded-lg h-full overflow-hidden">
             <div className="w-full h-full">
                 <LandingPagePreview 
-                  templateId={templateId}
+                  templateId={event.id}
                   heroTitle={heroTitle} 
                   heroCta={heroCta}
                   heroImageUrl={heroImageUrl}
@@ -672,6 +749,6 @@ export function Editor({
             </div>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase'; // Make sure you have this file to initialize Firestore
 import { unstable_noStore as noStore } from 'next/cache';
 
@@ -12,6 +12,18 @@ export type Event = {
   description: string;
   registrations: number;
   status: 'Draft' | 'Active' | 'Completed' | 'Cancelled';
+  slug?: string;
+  // Landing page content
+  heroTitle?: string;
+  heroCta?: string;
+  heroImageUrl?: string;
+  aboutTitle?: string;
+  aboutDescription?: string;
+  speakersTitle?: string;
+  speakers?: any[]; // Using any for now, should be Speaker[]
+  agendaTitle?: string;
+  agenda?: any[]; // Using any for now, should be AgendaItem[]
+  formFields?: any[]; // Using any for now, should be FormField[]
 };
 
 export type Lead = {
@@ -112,6 +124,16 @@ export const createEvent = async (eventData: Omit<Event, 'id' | 'registrations' 
     } catch (error) {
         console.error("Error adding document: ", error);
         throw new Error("Failed to create event in database.");
+    }
+}
+
+export const updateEvent = async (eventId: string, eventData: Partial<Event>) => {
+    try {
+        const eventRef = doc(db, 'events', eventId);
+        await updateDoc(eventRef, eventData);
+    } catch (error) {
+        console.error("Error updating document: ", error);
+        throw new Error("Failed to update event in database.");
     }
 }
 

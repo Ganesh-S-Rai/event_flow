@@ -1,4 +1,5 @@
-import { getTemplates } from '@/lib/data';
+
+import { getTemplates, getEvents } from '@/lib/data';
 import Image from 'next/image';
 import {
   Card,
@@ -14,16 +15,38 @@ import Link from 'next/link';
 
 export default async function TemplatesPage() {
   const templates = await getTemplates();
+  const events = await getEvents();
+  const recentlyEditedEventId = events.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.id;
 
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Landing Page Templates</h2>
         <p className="text-muted-foreground">
-          Choose a template to start creating your event landing page.
+          Choose a template to start creating your event landing page, or edit an existing one.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+       {recentlyEditedEventId && (
+        <Card className="bg-primary/10 border-primary/40">
+          <CardHeader>
+            <CardTitle>Continue Editing</CardTitle>
+            <CardDescription>
+              Jump back into the last event you were working on.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button asChild>
+              <Link href={`/dashboard/editor/${recentlyEditedEventId}`}>
+                <Pencil className="mr-2" />
+                Continue Editing
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 pt-6">
         {templates.map((template) => (
           <Card key={template.id} className="group flex flex-col">
             <CardHeader>
