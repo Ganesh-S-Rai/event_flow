@@ -36,7 +36,15 @@ type AgendaItem = {
   description: string;
 };
 
-function RegistrationForm({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+type FormField = {
+  id: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'select';
+  placeholder: string;
+  options?: string[];
+}
+
+function RegistrationForm({ open, onOpenChange, fields }: { open: boolean, onOpenChange: (open: boolean) => void, fields: FormField[] }) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-2xl">
@@ -45,43 +53,31 @@ function RegistrationForm({ open, onOpenChange }: { open: boolean, onOpenChange:
                 </DialogHeader>
                 <form className="space-y-6 pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" placeholder="First Name" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" placeholder="Last Name" />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="work-email">Work Email</Label>
-                            <Input id="work-email" type="email" placeholder="Work Email" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="company-name">Company Name</Label>
-                            <Input id="company-name" placeholder="Company Name" />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="phone-number">Phone Number</Label>
-                            <Input id="phone-number" type="tel" placeholder="Phone Number" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="designation">Designation</Label>
-                            <Input id="designation" placeholder="Designation" />
-                        </div>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="breakout-sessions">Interested in individual breakout sessions (Leave blank if not)</Label>
-                        <Select>
-                            <SelectTrigger id="breakout-sessions">
-                                <SelectValue placeholder="Select a session..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="session-1">Session 1: AI in Marketing</SelectItem>
-                                <SelectItem value="session-2">Session 2: Future of E-commerce</SelectItem>
-                                <SelectItem value="session-3">Session 3: Developer Tools</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        {fields.map(field => {
+                            if (field.type === 'select') {
+                                return (
+                                    <div key={field.id} className="space-y-2 col-span-2">
+                                        <Label htmlFor={field.id}>{field.label}</Label>
+                                        <Select>
+                                            <SelectTrigger id={field.id}>
+                                                <SelectValue placeholder={field.placeholder} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {field.options?.map((option, index) => (
+                                                    <SelectItem key={index} value={option}>{option}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )
+                            }
+                            return (
+                                <div key={field.id} className="space-y-2">
+                                    <Label htmlFor={field.id}>{field.label}</Label>
+                                    <Input id={field.id} type={field.type} placeholder={field.placeholder} />
+                                </div>
+                            )
+                        })}
                     </div>
                     <div className="flex items-start space-x-3">
                         <Checkbox id="consent" defaultChecked />
@@ -106,6 +102,7 @@ function LandingPagePreview({
   speakers,
   agendaTitle,
   agenda,
+  formFields,
 }: {
   heroTitle: string;
   heroCta: string;
@@ -116,6 +113,7 @@ function LandingPagePreview({
   speakers: Speaker[];
   agendaTitle: string;
   agenda: AgendaItem[];
+  formFields: FormField[];
 }) {
   const event = {
     name: heroTitle || 'Your Event Name',
@@ -127,7 +125,7 @@ function LandingPagePreview({
 
   return (
     <div className="bg-background text-foreground border rounded-lg overflow-y-auto w-[125%] h-[125%] origin-top-left scale-[0.8]">
-      <RegistrationForm open={isFormOpen} onOpenChange={setIsFormOpen} />
+      <RegistrationForm open={isFormOpen} onOpenChange={setIsFormOpen} fields={formFields} />
       <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-20 border-b">
         <Link
           href="#"
@@ -306,6 +304,17 @@ export function Editor({
       { id: `ag-${Date.now()}-3`, time: '11:00 AM', title: 'The Future of AI', description: 'A deep dive session with John Smith.' },
   ]);
 
+  // Form Field States
+  const [formFields, setFormFields] = useState<FormField[]>([
+      { id: 'ff-1', label: 'First Name', type: 'text', placeholder: 'First Name' },
+      { id: 'ff-2', label: 'Last Name', type: 'text', placeholder: 'Last Name' },
+      { id: 'ff-3', label: 'Work Email', type: 'email', placeholder: 'Work Email' },
+      { id: 'ff-4', label: 'Company Name', type: 'text', placeholder: 'Company Name' },
+      { id: 'ff-5', label: 'Phone Number', type: 'tel', placeholder: 'Phone Number' },
+      { id: 'ff-6', label: 'Designation', type: 'text', placeholder: 'Designation' },
+      { id: 'ff-7', label: 'Interested in individual breakout sessions (Leave blank if not)', type: 'select', placeholder: 'Select a session...', options: ['Session 1: AI in Marketing', 'Session 2: Future of E-commerce', 'Session 3: Developer Tools'] },
+  ]);
+
   const handleSpeakerChange = (id: string, field: keyof Omit<Speaker, 'id'>, value: string) => {
     setSpeakers(speakers.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
@@ -331,6 +340,22 @@ export function Editor({
     setAgenda(agenda.filter(a => a.id !== id));
   };
 
+  const handleFormFieldChange = (id: string, field: keyof Omit<FormField, 'id' | 'options' | 'type'>, value: string) => {
+    setFormFields(formFields.map(f => f.id === id ? { ...f, [field]: value } : f));
+  };
+
+  const handleFormFieldTypeChange = (id: string, type: FormField['type']) => {
+    setFormFields(formFields.map(f => f.id === id ? { ...f, type } : f));
+  }
+
+  const addFormField = () => {
+    setFormFields([...formFields, { id: `ff-${Date.now()}`, label: 'New Field', type: 'text', placeholder: 'New Field Placeholder' }]);
+  }
+
+  const removeFormField = (id: string) => {
+    setFormFields(formFields.filter(f => f.id !== id));
+  }
+
   return (
     <div className="space-y-4 h-full">
       <div className="flex items-center justify-between">
@@ -347,7 +372,7 @@ export function Editor({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
         {/* Editor Form */}
         <div className="lg:col-span-1 overflow-y-auto pr-4">
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4', 'item-5']} className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>
                 <h3 className="text-lg font-medium">Hero Section</h3>
@@ -478,6 +503,47 @@ export function Editor({
                   </div>
               </AccordionContent>
             </AccordionItem>
+            <AccordionItem value="item-5">
+              <AccordionTrigger>
+                <h3 className="text-lg font-medium">Registration Form</h3>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 p-1">
+                  {formFields.map((field) => (
+                    <div key={field.id} className="p-3 border rounded-md space-y-3 relative">
+                      <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeFormField(field.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                      <div className="space-y-2">
+                        <Label htmlFor={`form-label-${field.id}`}>Label</Label>
+                        <Input id={`form-label-${field.id}`} value={field.label} onChange={(e) => handleFormFieldChange(field.id, 'label', e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`form-placeholder-${field.id}`}>Placeholder</Label>
+                        <Input id={`form-placeholder-${field.id}`} value={field.placeholder} onChange={(e) => handleFormFieldChange(field.id, 'placeholder', e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`form-type-${field.id}`}>Field Type</Label>
+                        <Select value={field.type} onValueChange={(value: FormField['type']) => handleFormFieldTypeChange(field.id, value)}>
+                          <SelectTrigger id={`form-type-${field.id}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="tel">Phone Number</SelectItem>
+                            <SelectItem value="select">Select</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+                  <Button variant="outline" onClick={addFormField} className="w-full">
+                    <Plus className="mr-2 h-4 w-4" /> Add Form Field
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
 
@@ -494,6 +560,7 @@ export function Editor({
                   speakers={speakers}
                   agendaTitle={agendaTitle}
                   agenda={agenda}
+                  formFields={formFields}
                 />
             </div>
         </div>
