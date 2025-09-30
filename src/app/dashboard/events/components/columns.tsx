@@ -14,6 +14,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Event } from '@/lib/data';
 
+const statusVariantMap: Record<Event['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  Active: 'default',
+  Draft: 'secondary',
+  Completed: 'outline',
+  Cancelled: 'destructive',
+};
+
 export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: 'name',
@@ -29,6 +36,14 @@ export const columns: ColumnDef<Event>[] = [
       );
     },
     cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => {
+      const status: Event['status'] = row.getValue('status');
+      return <Badge variant={statusVariantMap[status]}>{status}</Badge>;
+    },
   },
   {
     accessorKey: 'date',
@@ -93,14 +108,11 @@ export const columns: ColumnDef<Event>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(event.id)}
-              >
-                Copy event ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem>View landing page</DropdownMenuItem>
               <DropdownMenuItem>View registrations</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Edit</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -5,6 +5,7 @@ export type Event = {
   location: string;
   description: string;
   registrations: number;
+  status: 'Draft' | 'Active' | 'Completed' | 'Cancelled';
 };
 
 export type Lead = {
@@ -25,6 +26,7 @@ const events: Event[] = [
     location: 'San Francisco, CA',
     description: 'The premier conference for technology and innovation. Join industry leaders, venture capitalists, and brilliant founders to explore the future of tech.',
     registrations: 1254,
+    status: 'Active',
   },
   {
     id: 'evt-002',
@@ -33,6 +35,7 @@ const events: Event[] = [
     location: 'Virtual',
     description: 'A deep dive into the world of quantum computing, featuring workshops and talks from leading researchers and engineers.',
     registrations: 832,
+    status: 'Active',
   },
   {
     id: 'evt-003',
@@ -41,6 +44,7 @@ const events: Event[] = [
     location: 'Boston, MA',
     description: 'Exploring the transformative impact of artificial intelligence on patient care, medical research, and healthcare operations.',
     registrations: 621,
+    status: 'Active',
   },
   {
     id: 'evt-004',
@@ -49,6 +53,7 @@ const events: Event[] = [
     location: 'New York, NY',
     description: 'Discover the latest trends and technologies shaping the modern workplace, from remote collaboration to AI-driven productivity tools.',
     registrations: 234,
+    status: 'Draft',
   },
   {
     id: 'evt-005',
@@ -57,6 +62,7 @@ const events: Event[] = [
     location: 'Austin, TX',
     description: 'A community meetup for professionals and enthusiasts in the sustainable technology space. Network and share ideas.',
     registrations: 78,
+    status: 'Completed',
   },
 ];
 
