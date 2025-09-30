@@ -6,16 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
-import { Calendar, MapPin, Ticket } from 'lucide-react';
+import { Calendar, MapPin, Ticket, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import {
   Accordion,
@@ -23,32 +15,50 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+// --- Types ---
+type Speaker = {
+  id: string;
+  name: string;
+  title: string;
+  avatarUrl: string;
+};
+
+type AgendaItem = {
+  id: string;
+  time: string;
+  title: string;
+  description: string;
+};
 
 function LandingPagePreview({
   heroTitle,
-  heroDescription,
   heroCta,
   aboutTitle,
   aboutDescription,
+  speakersTitle,
+  speakers,
+  agendaTitle,
+  agenda,
 }: {
   heroTitle: string;
-  heroDescription: string;
   heroCta: string;
   aboutTitle: string;
   aboutDescription: string;
+  speakersTitle: string;
+  speakers: Speaker[];
+  agendaTitle: string;
+  agenda: AgendaItem[];
 }) {
   const event = {
     name: heroTitle || 'Your Event Name',
-    description:
-      heroDescription ||
-      'This is where your event description will go. Keep it engaging!',
     date: '2024-10-26',
     location: 'San Francisco, CA',
   };
 
   return (
-    <div className="bg-background text-foreground border rounded-lg overflow-hidden scale-[0.8] origin-top-left w-[125%] h-[125%]">
+    <div className="bg-background text-foreground border rounded-lg overflow-y-auto w-[125%] h-[125%] origin-top-left scale-[0.8]">
       <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-20 border-b">
         <Link
           href="#"
@@ -116,6 +126,50 @@ function LandingPagePreview({
             </div>
           </div>
         </section>
+
+        {/* Speakers Section */}
+        <section className="py-12 md:py-16 bg-muted/40">
+            <div className="container px-4 md:px-6">
+                 <div className="max-w-3xl mx-auto text-center mb-12">
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">{speakersTitle}</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {speakers.map(speaker => (
+                        <div key={speaker.id} className="text-center">
+                            <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-background shadow-lg">
+                                <AvatarImage src={speaker.avatarUrl} alt={speaker.name} />
+                                <AvatarFallback>{speaker.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <h3 className="text-xl font-bold">{speaker.name}</h3>
+                            <p className="text-muted-foreground">{speaker.title}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+
+        {/* Agenda Section */}
+        <section className="py-12 md:py-16">
+            <div className="container px-4 md:px-6">
+                <div className="max-w-3xl mx-auto text-center mb-12">
+                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">{agendaTitle}</h2>
+                </div>
+                <div className="max-w-3xl mx-auto space-y-8">
+                    {agenda.map(item => (
+                        <div key={item.id} className="flex gap-4">
+                            <div className="w-24 text-right">
+                                <p className="font-bold text-primary">{item.time}</p>
+                            </div>
+                            <div className="flex-1 border-l-2 border-primary pl-4">
+                                <h4 className="font-bold text-lg">{item.title}</h4>
+                                <p className="text-muted-foreground">{item.description}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+
       </main>
     </div>
   );
@@ -129,9 +183,6 @@ export function Editor({
 }) {
   // Hero States
   const [heroTitle, setHeroTitle] = useState('InnovateX 2024');
-  const [heroDescription, setHeroDescription] = useState(
-    'The premier conference for technology and innovation. Join industry leaders, venture capitalists, and brilliant founders to explore the future of tech.'
-  );
   const [heroCta, setHeroCta] = useState('Register Now');
 
   // About States
@@ -139,6 +190,47 @@ export function Editor({
   const [aboutDescription, setAboutDescription] = useState(
     'This is where your event description will go. It should be exciting and informative, telling people why they should attend.'
   );
+
+  // Speakers States
+  const [speakersTitle, setSpeakersTitle] = useState('Featured Speakers');
+  const [speakers, setSpeakers] = useState<Speaker[]>([
+      { id: `spkr-${Date.now()}-1`, name: 'Jane Doe', title: 'CEO, TechCorp', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
+      { id: `spkr-${Date.now()}-2`, name: 'John Smith', title: 'Lead Engineer, Innovate LLC', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e290267072' },
+      { id: `spkr-${Date.now()}-3`, name: 'Alex Johnson', title: 'Product Manager, Solutions Inc.', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026705f' },
+  ]);
+
+  // Agenda States
+  const [agendaTitle, setAgendaTitle] = useState('Event Agenda');
+  const [agenda, setAgenda] = useState<AgendaItem[]>([
+      { id: `ag-${Date.now()}-1`, time: '9:00 AM', title: 'Registration & Coffee', description: 'Doors open for registration. Grab some coffee and network.'},
+      { id: `ag-${Date.now()}-2`, time: '10:00 AM', title: 'Opening Keynote', description: 'Join Jane Doe for an inspiring start to the day.' },
+      { id: `ag-${Date.now()}-3`, time: '11:00 AM', title: 'The Future of AI', description: 'A deep dive session with John Smith.' },
+  ]);
+
+  const handleSpeakerChange = (id: string, field: keyof Omit<Speaker, 'id'>, value: string) => {
+    setSpeakers(speakers.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
+  const addSpeaker = () => {
+    const newId = `spkr-${Date.now()}`;
+    setSpeakers([...speakers, { id: newId, name: 'New Speaker', title: 'Title', avatarUrl: `https://i.pravatar.cc/150?u=${newId}` }]);
+  };
+  
+  const removeSpeaker = (id: string) => {
+    setSpeakers(speakers.filter(s => s.id !== id));
+  };
+  
+  const handleAgendaChange = (id: string, field: keyof Omit<AgendaItem, 'id'>, value: string) => {
+    setAgenda(agenda.map(a => a.id === id ? { ...a, [field]: value } : a));
+  };
+  
+  const addAgendaItem = () => {
+    setAgenda([...agenda, { id: `ag-${Date.now()}`, time: '12:00 PM', title: 'New Session', description: 'Details about this session.' }]);
+  };
+
+  const removeAgendaItem = (id: string) => {
+    setAgenda(agenda.filter(a => a.id !== id));
+  };
 
   return (
     <div className="space-y-4 h-full">
@@ -156,7 +248,7 @@ export function Editor({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
         {/* Editor Form */}
         <div className="lg:col-span-1 overflow-y-auto pr-4">
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2']} className="w-full">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>
                 <h3 className="text-lg font-medium">Hero Section</h3>
@@ -169,15 +261,6 @@ export function Editor({
                       id="hero-title"
                       value={heroTitle}
                       onChange={(e) => setHeroTitle(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="hero-description">Description</Label>
-                    <Textarea
-                      id="hero-description"
-                      value={heroDescription}
-                      onChange={(e) => setHeroDescription(e.target.value)}
-                      rows={5}
                     />
                   </div>
                   <div className="space-y-2">
@@ -217,28 +300,91 @@ export function Editor({
                 </div>
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="item-3" disabled>
+            <AccordionItem value="item-3">
                <AccordionTrigger>
-                <h3 className="text-lg font-medium">Speakers (coming soon)</h3>
+                <h3 className="text-lg font-medium">Speakers</h3>
               </AccordionTrigger>
+              <AccordionContent>
+                  <div className="space-y-4 p-1">
+                     <div className="space-y-2">
+                        <Label>Section Title</Label>
+                        <Input value={speakersTitle} onChange={(e) => setSpeakersTitle(e.target.value)} />
+                    </div>
+                      {speakers.map((speaker, index) => (
+                          <div key={speaker.id} className="p-3 border rounded-md space-y-3 relative">
+                              <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeSpeaker(speaker.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                              <div className="space-y-2">
+                                  <Label htmlFor={`speaker-name-${index}`}>Name</Label>
+                                  <Input id={`speaker-name-${index}`} value={speaker.name} onChange={(e) => handleSpeakerChange(speaker.id, 'name', e.target.value)} />
+                              </div>
+                              <div className="space-y-2">
+                                  <Label htmlFor={`speaker-title-${index}`}>Title/Company</Label>
+                                  <Input id={`speaker-title-${index}`} value={speaker.title} onChange={(e) => handleSpeakerChange(speaker.id, 'title', e.target.value)} />
+                              </div>
+                               <div className="space-y-2">
+                                  <Label htmlFor={`speaker-avatar-${index}`}>Avatar URL</Label>
+                                  <Input id={`speaker-avatar-${index}`} value={speaker.avatarUrl} onChange={(e) => handleSpeakerChange(speaker.id, 'avatarUrl', e.target.value)} />
+                              </div>
+                          </div>
+                      ))}
+                      <Button variant="outline" onClick={addSpeaker} className="w-full">
+                          <Plus className="mr-2 h-4 w-4" /> Add Speaker
+                      </Button>
+                  </div>
+              </AccordionContent>
             </AccordionItem>
-             <AccordionItem value="item-4" disabled>
+             <AccordionItem value="item-4">
                <AccordionTrigger>
-                <h3 className="text-lg font-medium">Agenda (coming soon)</h3>
+                <h3 className="text-lg font-medium">Agenda</h3>
               </AccordionTrigger>
+               <AccordionContent>
+                  <div className="space-y-4 p-1">
+                     <div className="space-y-2">
+                        <Label>Section Title</Label>
+                        <Input value={agendaTitle} onChange={(e) => setAgendaTitle(e.target.value)} />
+                    </div>
+                      {agenda.map((item, index) => (
+                           <div key={item.id} className="p-3 border rounded-md space-y-3 relative">
+                                <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeAgendaItem(item.id)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              <div className="space-y-2">
+                                  <Label htmlFor={`agenda-time-${index}`}>Time</Label>
+                                  <Input id={`agenda-time-${index}`} value={item.time} onChange={(e) => handleAgendaChange(item.id, 'time', e.target.value)} />
+                              </div>
+                              <div className="space-y-2">
+                                  <Label htmlFor={`agenda-title-${index}`}>Title</Label>
+                                  <Input id={`agenda-title-${index}`} value={item.title} onChange={(e) => handleAgendaChange(item.id, 'title', e.target.value)} />
+                              </div>
+                              <div className="space-y-2">
+                                  <Label htmlFor={`agenda-desc-${index}`}>Description</Label>
+                                  <Textarea id={`agenda-desc-${index}`} value={item.description} onChange={(e) => handleAgendaChange(item.id, 'description', e.target.value)} rows={3} />
+                              </div>
+                          </div>
+                      ))}
+                      <Button variant="outline" onClick={addAgendaItem} className="w-full">
+                           <Plus className="mr-2 h-4 w-4" /> Add Agenda Item
+                      </Button>
+                  </div>
+              </AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>
 
         {/* Live Preview */}
         <div className="lg:col-span-2 bg-muted/20 rounded-lg h-full overflow-hidden">
-            <div className="w-full h-full transform">
+            <div className="w-full h-full">
                 <LandingPagePreview 
                   heroTitle={heroTitle} 
-                  heroDescription={heroDescription} 
                   heroCta={heroCta}
                   aboutTitle={aboutTitle}
                   aboutDescription={aboutDescription}
+                  speakersTitle={speakersTitle}
+                  speakers={speakers}
+                  agendaTitle={agendaTitle}
+                  agenda={agenda}
                 />
             </div>
         </div>
