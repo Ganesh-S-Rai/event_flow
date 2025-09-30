@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase'; // Make sure you have this file to initialize Firestore
 import { unstable_noStore as noStore } from 'next/cache';
 
@@ -20,10 +20,10 @@ export type Event = {
   aboutTitle?: string;
   aboutDescription?: string;
   speakersTitle?: string;
-  speakers?: any[]; // Using any for now, should be Speaker[]
+  speakers?: { id: string; name: string; title: string; avatarUrl: string; }[];
   agendaTitle?: string;
-  agenda?: any[]; // Using any for now, should be AgendaItem[]
-  formFields?: any[]; // Using any for now, should be FormField[]
+  agenda?: { id: string; time: string; title: string; description: string; }[];
+  formFields?: { id: string; label: string; type: 'text' | 'email' | 'tel' | 'select'; placeholder: string; options?: string[] }[];
 };
 
 export type Lead = {
@@ -107,14 +107,16 @@ export const getEventById = async (id: string): Promise<Event | undefined> => {
             // Check if it's a template ID
             const template = templates.find(t => t.id === id);
             if (template) {
+                // Return an event object based on the template
                 return {
-                    id: template.id,
+                    id: `evt-from-${template.id}-${Date.now()}`, // Temporary ID for creation
                     name: template.name,
                     description: template.description,
                     date: new Date().toISOString(),
                     location: 'Online',
                     registrations: 0,
                     status: 'Draft',
+                    heroTitle: template.name,
                 };
             }
             console.log("No such document or template!");
@@ -125,6 +127,23 @@ export const getEventById = async (id: string): Promise<Event | undefined> => {
         return undefined;
     }
 };
+
+export const getEventBySlug = async (slug: string): Promise<Event | undefined> => {
+    noStore();
+    try {
+        const q = query(collection(db, "events"), where("slug", "==", slug), limit(1));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const docSnap = querySnapshot.docs[0];
+            return { id: docSnap.id, ...docSnap.data() } as Event;
+        }
+        return undefined;
+    } catch (error) {
+        console.error("Error fetching event by slug:", error);
+        return undefined;
+    }
+}
 
 export const createEvent = async (eventData: Omit<Event, 'id' | 'registrations' | 'status'>) => {
     try {
@@ -142,8 +161,22 @@ export const createEvent = async (eventData: Omit<Event, 'id' | 'registrations' 
 
 export const updateEvent = async (eventId: string, eventData: Partial<Event>) => {
     try {
-        const eventRef = doc(db, 'events', eventId);
-        await updateDoc(eventRef, eventData);
+        // If the event ID indicates it's a new one from a template, create it first.
+        if (eventId.startsWith('evt-from-')) {
+            const newId = await createEvent({
+                name: eventData.name || 'New Event',
+                date: eventData.date || new Date().toISOString(),
+                location: eventData.location || 'Online',
+                description: eventData.description || ''
+            });
+            const eventRef = doc(db, 'events', newId);
+            await updateDoc(eventRef, eventData);
+            return newId;
+        } else {
+            const eventRef = doc(db, 'events', eventId);
+            await updateDoc(eventRef, eventData);
+            return eventId;
+        }
     } catch (error) {
         console.error("Error updating document: ", error);
         throw new Error("Failed to update event in database.");

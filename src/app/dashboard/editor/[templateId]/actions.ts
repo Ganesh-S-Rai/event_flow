@@ -55,6 +55,8 @@ export async function publishEventAction(
 
     revalidatePath('/dashboard/events');
     revalidatePath(`/dashboard/editor/${eventId}`);
+    revalidatePath(`/events/${eventId}`);
+
 
     return { 
       message: 'Successfully published event page.',

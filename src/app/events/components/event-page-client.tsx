@@ -16,9 +16,9 @@ import { registerLead, type RegisterLeadOutput } from '@/ai/flows/register-lead-
 import { useToast } from '@/hooks/use-toast';
 import type { Event } from '@/lib/data';
 
-type Speaker = Event['speakers'][0];
-type AgendaItem = Event['agenda'][0];
-type FormField = Event['formFields'][0];
+type Speaker = NonNullable<Event['speakers']>[0];
+type AgendaItem = NonNullable<Event['agenda']>[0];
+type FormField = NonNullable<Event['formFields']>[0];
 
 function RegistrationForm({ 
   open, 
@@ -43,7 +43,7 @@ function RegistrationForm({
         const formData = new FormData(event.currentTarget);
         const details: { [key: string]: string } = {};
         fields.forEach(field => {
-          const key = field.label.toLowerCase().replace(/ /g, '_');
+          const key = field.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
           details[key] = formData.get(field.id) as string;
         });
 
@@ -85,11 +85,12 @@ function RegistrationForm({
                         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                             <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-4">
                                 {fields.map(field => {
+                                    const isOptional = field.label.toLowerCase().includes('(optional)');
                                     if (field.type === 'select') {
                                         return (
                                             <div key={field.id} className="space-y-2">
                                                 <Label htmlFor={field.id}>{field.label}</Label>
-                                                <Select name={field.id}>
+                                                <Select name={field.id} required={!isOptional}>
                                                     <SelectTrigger id={field.id}>
                                                         <SelectValue placeholder={field.placeholder} />
                                                     </SelectTrigger>
@@ -105,7 +106,7 @@ function RegistrationForm({
                                     return (
                                         <div key={field.id} className="space-y-2">
                                             <Label htmlFor={field.id}>{field.label}</Label>
-                                            <Input id={field.id} name={field.id} type={field.type} placeholder={field.placeholder} required={!field.label.includes('(Optional)')} />
+                                            <Input id={field.id} name={field.id} type={field.type} placeholder={field.placeholder} required={!isOptional} />
                                         </div>
                                     )
                                 })}
@@ -183,20 +184,22 @@ export function EventPageClient({ event }: { event: Event }) {
           className="flex items-center justify-center font-bold"
           prefetch={false}
         >
-          EventFlow
+          {event.name}
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Button asChild>
-            <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>
-              <Ticket className="mr-2" />
-              {heroCta}
-            </Link>
-          </Button>
+            {formFields.length > 0 && heroCta && (
+                <Button asChild>
+                    <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>
+                    <Ticket className="mr-2" />
+                    {heroCta}
+                    </Link>
+                </Button>
+            )}
         </nav>
       </header>
       <main>
         {/* Hero Section */}
-        <section className="relative h-[50vh] flex items-center justify-center text-center text-primary-foreground">
+        <section className="relative h-[60vh] flex items-center justify-center text-center text-primary-foreground">
           <Image
             src={heroImageUrl}
             alt={heroTitle}
@@ -204,12 +207,12 @@ export function EventPageClient({ event }: { event: Event }) {
             className="object-cover -z-10"
             data-ai-hint="event stage"
           />
-          <div className="absolute inset-0 bg-black/50 -z-10" />
+          <div className="absolute inset-0 bg-black/60 -z-10" />
           <div className="container px-4 md:px-6 space-y-4">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">
               {heroTitle}
             </h1>
-            <div className="flex items-center justify-center gap-4 md:gap-8 text-md">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-lg">
               <div className="flex items-center gap-2">
                 <Calendar className="size-5" />
                 <span>
@@ -225,39 +228,43 @@ export function EventPageClient({ event }: { event: Event }) {
                 <span>{event.location}</span>
               </div>
             </div>
-            <Button asChild size="lg">
-              <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>{heroCta}</Link>
-            </Button>
+             {formFields.length > 0 && heroCta && (
+                <Button asChild size="lg" className="mt-4">
+                    <Link href="#register" onClick={(e) => { e.preventDefault(); setIsFormOpen(true); }}>{heroCta}</Link>
+                </Button>
+             )}
           </div>
         </section>
 
         {/* About the Event Section */}
-        <section className="py-12 md:py-16">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                {aboutTitle}
-              </h2>
-              <p className="mt-4 text-muted-foreground md:text-xl">
-                {aboutDescription}
-              </p>
+        {aboutDescription && (
+            <section id="about" className="py-12 md:py-24">
+            <div className="container px-4 md:px-6">
+                <div className="max-w-3xl mx-auto text-center">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+                    {aboutTitle}
+                </h2>
+                <p className="mt-4 text-muted-foreground md:text-xl/relaxed whitespace-pre-line">
+                    {aboutDescription}
+                </p>
+                </div>
             </div>
-          </div>
-        </section>
+            </section>
+        )}
 
         {/* Speakers Section */}
         {speakers.length > 0 && (
-            <section className="py-12 md:py-16 bg-muted/40">
+            <section id="speakers" className="py-12 md:py-24 bg-muted/40">
                 <div className="container px-4 md:px-6">
                     <div className="max-w-3xl mx-auto text-center mb-12">
                         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">{speakersTitle}</h2>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                         {speakers.map(speaker => (
                             <div key={speaker.id} className="text-center">
                                 <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-background shadow-lg">
                                     <AvatarImage src={speaker.avatarUrl} alt={speaker.name} />
-                                    <AvatarFallback>{speaker.name.charAt(0)}</AvatarFallback>
+                                    <AvatarFallback>{speaker.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
                                 <h3 className="text-xl font-bold">{speaker.name}</h3>
                                 <p className="text-muted-foreground">{speaker.title}</p>
@@ -270,7 +277,7 @@ export function EventPageClient({ event }: { event: Event }) {
 
         {/* Agenda Section */}
         {agenda.length > 0 && (
-            <section className="py-12 md:py-16">
+            <section id="agenda" className="py-12 md:py-24">
                 <div className="container px-4 md:px-6">
                     <div className="max-w-3xl mx-auto text-center mb-12">
                         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">{agendaTitle}</h2>
@@ -279,7 +286,7 @@ export function EventPageClient({ event }: { event: Event }) {
                         {agenda.map(item => (
                             <div key={item.id} className="flex gap-4">
                                 <div className="w-24 text-right">
-                                    <p className="font-bold text-primary">{item.time}</p>
+                                    <p className="font-bold text-primary shrink-0">{item.time}</p>
                                 </div>
                                 <div className="flex-1 border-l-2 border-primary pl-4">
                                     <h4 className="font-bold text-lg">{item.title}</h4>
@@ -293,25 +300,27 @@ export function EventPageClient({ event }: { event: Event }) {
         )}
         
         {/* RSVP Section */}
-        <section id="register" className="py-12 md:py-24 bg-muted/40">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                Register Now
-              </h2>
-              <p className="mt-4 text-muted-foreground md:text-xl">
-                Secure your spot. Click the button to get started.
-              </p>
-                <Button size="lg" className="mt-6" onClick={() => setIsFormOpen(true)}>
-                    Register Today
-                </Button>
+        {formFields.length > 0 && (
+            <section id="register" className="py-12 md:py-24 bg-muted/40">
+            <div className="container px-4 md:px-6">
+                <div className="max-w-3xl mx-auto text-center">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+                    Register Now
+                </h2>
+                <p className="mt-4 text-muted-foreground md:text-xl">
+                    Secure your spot. Click the button to get started.
+                </p>
+                    <Button size="lg" className="mt-6" onClick={() => setIsFormOpen(true)}>
+                        Register Today
+                    </Button>
+                </div>
             </div>
-          </div>
-        </section>
+            </section>
+        )}
 
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 EventFlow. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; 2024 {event.name}. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Terms of Service

@@ -219,7 +219,7 @@ export function Editor({
                   <div className="space-y-2">
                     <Label htmlFor="slug">URL Slug</Label>
                     <div className="flex items-center rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                        <span className="pl-3 text-sm text-muted-foreground">/</span>
+                        <span className="pl-3 text-sm text-muted-foreground">/events/</span>
                         <Input
                           id="slug"
                           name="slug"
@@ -228,9 +228,9 @@ export function Editor({
                           onChange={(e) => setSlug(e.target.value)}
                         />
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                     <p className="text-xs text-muted-foreground">
                         Your page will be available at: <br />
-                        <span className="font-mono bg-muted/80 p-1 rounded-sm">https://netcorecloud.com/{slug}</span>
+                        <span className="font-mono bg-muted/80 p-1 rounded-sm">/events/{slug}</span>
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 
-import { getEventById } from '@/lib/data';
+import { getEventBySlug, getEventById } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { EventPageClient } from '../components/event-page-client';
 
@@ -8,9 +8,10 @@ export default async function EventLandingPage({
 }: {
   params: { eventId: string };
 }) {
-  const event = await getEventById(params.eventId);
+  // The event could be looked up by slug or ID
+  const event = await getEventBySlug(params.eventId) || await getEventById(params.eventId);
 
-  if (!event) {
+  if (!event || event.status === 'Draft') {
     notFound();
   }
 

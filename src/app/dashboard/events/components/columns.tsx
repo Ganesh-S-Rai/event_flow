@@ -90,7 +90,7 @@ export const columns: ColumnDef<Event>[] = [
       );
     },
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue('registrations'));
+      const amount = parseFloat(row.getValue('registrations') || '0');
       return <div className="text-right font-medium">{amount.toLocaleString()}</div>;
     },
   },
@@ -98,6 +98,7 @@ export const columns: ColumnDef<Event>[] = [
     id: 'actions',
     cell: ({ row }) => {
       const event = row.original;
+      const pageUrl = event.status === 'Active' && event.slug ? `/events/${event.slug}` : `/events/${event.id}`;
 
       return (
         <div className="text-right">
@@ -111,7 +112,7 @@ export const columns: ColumnDef<Event>[] = [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href={`/events/${event.id}`}>View landing page</Link>
+                <Link href={pageUrl} target="_blank">View landing page</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>View registrations</DropdownMenuItem>
               <DropdownMenuSeparator />
