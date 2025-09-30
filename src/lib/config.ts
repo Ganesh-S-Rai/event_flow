@@ -5,8 +5,16 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { unstable_noStore as noStore } from 'next/cache';
 
+export type SenderProfile = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 export type AppConfig = {
   netcoreApiKey?: string;
+  senderProfiles?: SenderProfile[];
+  defaultSenderId?: string;
 };
 
 // The path to the config file
@@ -20,13 +28,11 @@ export async function getConfig(showPrivateKey: boolean = false): Promise<AppCon
   noStore();
   try {
     const fileContent = await fs.readFile(configPath, 'utf-8');
-    const currentConfig = JSON.parse(fileContent);
+    const currentConfig: AppConfig = JSON.parse(fileContent);
 
     // If not explicitly asked for, hide the private key.
-    if (!showPrivateKey) {
-      return {
-        netcoreApiKey: currentConfig.netcoreApiKey ? '********' : '',
-      };
+    if (!showPrivateKey && currentConfig.netcoreApiKey) {
+        currentConfig.netcoreApiKey = '********';
     }
     
     return currentConfig;
@@ -58,10 +64,20 @@ export async function saveConfig(newConfig: Partial<AppConfig>): Promise<void> {
     }
   }
 
-  // Merge the new config. If a value is an empty string, don't update it.
-  const updatedConfig = { ...currentConfig };
-  if (newConfig.netcoreApiKey) {
+  // Merge the new config.
+  const updatedConfig: AppConfig = { ...currentConfig };
+
+  // Only update API key if it's not the placeholder
+  if (newConfig.netcoreApiKey && newConfig.netcoreApiKey !== '********') {
     updatedConfig.netcoreApiKey = newConfig.netcoreApiKey;
+  }
+
+  // Update sender profiles and default sender
+  if (newConfig.senderProfiles) {
+    updatedConfig.senderProfiles = newConfig.senderProfiles;
+  }
+  if (newConfig.defaultSenderId) {
+    updatedConfig.defaultSenderId = newConfig.defaultSenderId;
   }
   
   try {

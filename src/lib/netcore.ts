@@ -22,16 +22,16 @@ type EmailPayload = {
 
 /**
  * Sends an email using the Netcore Email API.
- * @param toEmail The recipient's email address.
- * @param subject The subject of the email.
- * @param htmlContent The HTML body of the email.
- * @returns The response from the Netcore API.
  */
 export async function sendEmail({
+    fromName,
+    fromEmail,
     toEmail,
     subject,
     htmlContent,
 }: {
+    fromName: string;
+    fromEmail: string;
     toEmail: string;
     subject: string;
     htmlContent: string;
@@ -45,8 +45,8 @@ export async function sendEmail({
 
     const payload: EmailPayload = {
         from: {
-            email: 'noreply@eventflow.com', // This should be a verified sender in your Netcore account
-            name: 'EventFlow',
+            email: fromEmail,
+            name: fromName,
         },
         personalizations: [{ to: [{ email: toEmail }] }],
         subject: subject,
