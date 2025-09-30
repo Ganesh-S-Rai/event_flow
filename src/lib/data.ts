@@ -1,3 +1,9 @@
+
+import { collection, getDocs, doc, getDoc, addDoc } from 'firebase/firestore';
+import { db } from './firebase'; // Make sure you have this file to initialize Firestore
+import { unstable_noStore as noStore } from 'next/cache';
+
+
 export type Event = {
   id: string;
   name: string;
@@ -25,75 +31,6 @@ export type Template = {
   imageUrl: string;
 };
 
-const events: Event[] = [
-  {
-    id: 'evt-001',
-    name: 'InnovateX 2024',
-    date: '2024-10-26',
-    location: 'San Francisco, CA',
-    description: 'The premier conference for technology and innovation. Join industry leaders, venture capitalists, and brilliant founders to explore the future of tech.',
-    registrations: 1254,
-    status: 'Active',
-  },
-  {
-    id: 'evt-002',
-    name: 'Quantum Computing Summit',
-    date: '2024-11-15',
-    location: 'Virtual',
-    description: 'A deep dive into the world of quantum computing, featuring workshops and talks from leading researchers and engineers.',
-    registrations: 832,
-    status: 'Active',
-  },
-  {
-    id: 'evt-003',
-    name: 'AI in Healthcare Symposium',
-    date: '2024-12-05',
-    location: 'Boston, MA',
-    description: 'Exploring the transformative impact of artificial intelligence on patient care, medical research, and healthcare operations.',
-    registrations: 621,
-    status: 'Active',
-  },
-  {
-    id: 'evt-004',
-    name: 'Future of Work Expo',
-    date: '2025-01-20',
-    location: 'New York, NY',
-    description: 'Discover the latest trends and technologies shaping the modern workplace, from remote collaboration to AI-driven productivity tools.',
-    registrations: 234,
-    status: 'Draft',
-  },
-  {
-    id: 'evt-005',
-    name: 'GreenTech Innovators Meetup',
-    date: '2025-02-12',
-    location: 'Austin, TX',
-    description: 'A community meetup for professionals and enthusiasts in the sustainable technology space. Network and share ideas.',
-    registrations: 78,
-    status: 'Completed',
-  },
-];
-
-const getLeadsForEvent = (event: Event, count: number): Lead[] => {
-  const leads: Lead[] = [];
-  const statuses: Lead['status'][] = ['New', 'Contacted', 'Converted', 'Lost'];
-  for (let i = 1; i <= count; i++) {
-    const registrationDate = new Date(event.date);
-    registrationDate.setDate(registrationDate.getDate() - Math.floor(Math.random() * 60));
-    leads.push({
-      id: `lead-${event.id}-${i}`,
-      name: `Lead ${i}`,
-      email: `lead${i}.${event.id}@example.com`,
-      eventId: event.id,
-      eventName: event.name,
-      status: statuses[i % statuses.length],
-      registrationDate: registrationDate.toISOString().split('T')[0],
-    });
-  }
-  return leads;
-};
-
-const leads: Lead[] = events.flatMap(event => getLeadsForEvent(event, event.registrations));
-
 const templates: Template[] = [
     {
       id: 'tpl-001',
@@ -116,16 +53,67 @@ const templates: Template[] = [
   ];
 
 export const getEvents = async (): Promise<Event[]> => {
-  return Promise.resolve(events);
+  noStore();
+  try {
+    const querySnapshot = await getDocs(collection(db, "events"));
+    const events: Event[] = [];
+    querySnapshot.forEach((doc) => {
+      events.push({ id: doc.id, ...doc.data() } as Event);
+    });
+    return events;
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    return [];
+  }
 };
 
 export const getLeads = async (): Promise<Lead[]> => {
-  return Promise.resolve(leads);
+  noStore();
+  try {
+    const querySnapshot = await getDocs(collection(db, "leads"));
+    const leads: Lead[] = [];
+    querySnapshot.forEach((doc) => {
+      leads.push({ id: doc.id, ...doc.data() } as Lead);
+    });
+    return leads;
+  } catch (error) {
+    console.error("Error fetching leads:", error);
+    return [];
+  }
 };
 
 export const getEventById = async (id: string): Promise<Event | undefined> => {
-  return Promise.resolve(events.find(e => e.id === id));
+    noStore();
+    try {
+        const docRef = doc(db, 'events', id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() } as Event;
+        } else {
+            console.log("No such document!");
+            return undefined;
+        }
+    } catch (error) {
+        console.error("Error fetching event by ID:", error);
+        return undefined;
+    }
 };
+
+export const createEvent = async (eventData: Omit<Event, 'id' | 'registrations' | 'status'>) => {
+    try {
+        const docRef = await addDoc(collection(db, "events"), {
+            ...eventData,
+            registrations: 0,
+            status: 'Draft', // Default status
+        });
+        return docRef.id;
+    } catch (error) {
+        console.error("Error adding document: ", error);
+        throw new Error("Failed to create event in database.");
+    }
+}
+
 
 export const getTemplates = async (): Promise<Template[]> => {
     return Promise.resolve(templates);
