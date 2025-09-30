@@ -22,45 +22,7 @@ import { Separator } from '@/components/ui/separator';
 // --- Helper Functions ---
 const slugify = (text: string) => text.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
 
-// --- Main Components ---
-function PublishButton({status}: {status: Event['status']}) {
-  const { pending } = useFormStatus();
-  return (
-      <Button type="submit" disabled={pending}>
-          {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (status === 'Active' ? 'Update' : 'Publish')}
-      </Button>
-  );
-}
-
-function AddBlockPopover({ onAddBlock }: { onAddBlock: (type: Block['type']) => void }) {
-  const blockTypes: { type: Block['type']; label: string; icon: React.ElementType }[] = [
-    { type: 'hero', label: 'Hero', icon: Star },
-    { type: 'heading', label: 'Heading', icon: Type },
-    { type: 'text', label: 'Text', icon: Pilcrow },
-    { type: 'image', label: 'Image', icon: ImageIcon },
-    { type: 'button', label: 'Button', icon: MessageSquare },
-  ];
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <Plus className="mr-2 h-4 w-4" /> Add Block
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-48 p-2">
-        <div className="grid gap-1">
-          {blockTypes.map(({ type, label, icon: Icon }) => (
-            <Button key={type} variant="ghost" className="justify-start" onClick={() => onAddBlock(type)}>
-              <Icon className="mr-2 h-4 w-4" /> {label}
-            </Button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
+// --- AI Dialogs ---
 function GenerateTextDialog({ open, onOpenChange, onGenerate, currentText }: { open: boolean, onOpenChange: (open: boolean) => void, onGenerate: (text: string) => void, currentText?: string }) {
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -181,20 +143,123 @@ function EditImageDialog({ open, onOpenChange, onGenerate, currentImage }: { ope
     );
 }
 
+// --- Reusable Controls ---
+function ImageControls({
+  field,
+  currentSrc,
+  onImageUpload,
+  onImageGenerate,
+  onImageEdit,
+}: {
+  field: string;
+  currentSrc: string;
+  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageGenerate: (url: string) => void;
+  onImageEdit: (url: string) => void;
+}) {
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const [isImageGenOpen, setIsImageGenOpen] = useState(false);
+  const [isImageEditOpen, setIsImageEditOpen] = useState(false);
+
+  return (
+    <>
+      <div className="flex gap-2 mt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => imageFileInputRef.current?.click()}
+        >
+          <Upload className="mr-2 h-4 w-4" /> Upload
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsImageGenOpen(true)}
+        >
+          <Wand2 className="mr-2 h-4 w-4" /> Generate New
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsImageEditOpen(true)}
+          disabled={!currentSrc}
+        >
+          <Edit className="mr-2 h-4 w-4" /> Edit with AI
+        </Button>
+      </div>
+      <input
+        type="file"
+        accept="image/*"
+        ref={imageFileInputRef}
+        onChange={onImageUpload}
+        className="hidden"
+      />
+      <GenerateImageDialog
+        open={isImageGenOpen}
+        onOpenChange={setIsImageGenOpen}
+        onGenerate={onImageGenerate}
+      />
+      <EditImageDialog
+        open={isImageEditOpen}
+        onOpenChange={setIsImageEditOpen}
+        onGenerate={onImageEdit}
+        currentImage={currentSrc}
+      />
+    </>
+  );
+}
+
+
+// --- Main Components ---
+function PublishButton({status}: {status: Event['status']}) {
+  const { pending } = useFormStatus();
+  return (
+      <Button type="submit" disabled={pending}>
+          {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (status === 'Active' ? 'Update' : 'Publish')}
+      </Button>
+  );
+}
+
+function AddBlockPopover({ onAddBlock }: { onAddBlock: (type: Block['type']) => void }) {
+  const blockTypes: { type: Block['type']; label: string; icon: React.ElementType }[] = [
+    { type: 'hero', label: 'Hero', icon: Star },
+    { type: 'heading', label: 'Heading', icon: Type },
+    { type: 'text', label: 'Text', icon: Pilcrow },
+    { type: 'image', label: 'Image', icon: ImageIcon },
+    { type: 'button', label: 'Button', icon: MessageSquare },
+  ];
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="w-full">
+          <Plus className="mr-2 h-4 w-4" /> Add Block
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-2">
+        <div className="grid gap-1">
+          {blockTypes.map(({ type, label, icon: Icon }) => (
+            <Button key={type} variant="ghost" className="justify-start" onClick={() => onAddBlock(type)}>
+              <Icon className="mr-2 h-4 w-4" /> {label}
+            </Button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUpdate: (id: string, content: any) => void, onRemove: (id: string) => void, onMove: (id: string, direction: 'up' | 'down') => void }) {
     const [isTextGenOpen, setIsTextGenOpen] = useState(false);
-    const [isImageGenOpen, setIsImageGenOpen] = useState(false);
-    const [isImageEditOpen, setIsImageEditOpen] = useState(false);
     const { toast } = useToast();
     
     const handleGenerateText = (field: string) => (newText: string) => {
         onUpdate(block.id, { ...block.content, [field]: newText });
     };
 
-    const handleGenerateImage = (field: string) => (newUrl: string) => {
-        onUpdate(block.id, { ...block.content, [field]: newUrl });
-    };
+    const handleImageAction = (field: string) => (newUrl: string) => {
+         onUpdate(block.id, { ...block.content, [field]: newUrl });
+    }
 
     const handleImageUpload = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -211,22 +276,6 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
         }
     };
     
-    const ImageControls = ({ field, currentSrc }: { field: string, currentSrc: string }) => {
-        const imageFileInputRef = useRef<HTMLInputElement>(null);
-        return (
-            <>
-                <div className="flex gap-2 mt-2">
-                    <Button variant="outline" size="sm" onClick={() => imageFileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload</Button>
-                    <Button variant="outline" size="sm" onClick={() => setIsImageGenOpen(true)}><Wand2 className="mr-2 h-4 w-4" /> Generate New</Button>
-                    <Button variant="outline" size="sm" onClick={() => setIsImageEditOpen(true)} disabled={!currentSrc}><Edit className="mr-2 h-4 w-4" /> Edit with AI</Button>
-                </div>
-                <input type="file" accept="image/*" ref={imageFileInputRef} onChange={handleImageUpload(field)} className="hidden" />
-                <GenerateImageDialog open={isImageGenOpen} onOpenChange={setIsImageGenOpen} onGenerate={handleGenerateImage(field)} />
-                <EditImageDialog open={isImageEditOpen} onOpenChange={setIsImageEditOpen} onGenerate={handleGenerateImage(field)} currentImage={currentSrc} />
-            </>
-        );
-    };
-
     const renderBlock = () => {
         switch (block.type) {
             case 'hero':
@@ -235,7 +284,13 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                         <div>
                             <Label>Background Image</Label>
                             <Input value={block.content.backgroundImageSrc?.startsWith('data:') ? 'Uploaded Image' : block.content.backgroundImageSrc || ''} onChange={(e) => onUpdate(block.id, { ...block.content, backgroundImageSrc: e.target.value })} placeholder="Image URL or upload" />
-                            <ImageControls field="backgroundImageSrc" currentSrc={block.content.backgroundImageSrc} />
+                             <ImageControls
+                                field="backgroundImageSrc"
+                                currentSrc={block.content.backgroundImageSrc}
+                                onImageUpload={handleImageUpload("backgroundImageSrc")}
+                                onImageGenerate={handleImageAction("backgroundImageSrc")}
+                                onImageEdit={handleImageAction("backgroundImageSrc")}
+                            />
                         </div>
                         <Separator />
                         <div className="space-y-2">
@@ -299,7 +354,13 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                 return (
                     <div>
                         <Input value={block.content.src?.startsWith('data:') ? 'Uploaded Image' : block.content.src || ''} onChange={(e) => onUpdate(block.id, { ...block.content, src: e.target.value })} placeholder="Image URL or upload" />
-                        <ImageControls field="src" currentSrc={block.content.src} />
+                        <ImageControls
+                            field="src"
+                            currentSrc={block.content.src}
+                            onImageUpload={handleImageUpload("src")}
+                            onImageGenerate={handleImageAction("src")}
+                            onImageEdit={handleImageAction("src")}
+                        />
                     </div>
                 );
             case 'button':
