@@ -5,6 +5,7 @@ const ALLOWED_DOMAIN = 'netcorecloud.com';
 const WHITELISTED_USERS: string[] = [
     'event.manager@netcorecloud.com',
     'marketing.lead@netcorecloud.com',
+    'ganesh.rai@netcorecloud.com',
 ];
 
 /**
