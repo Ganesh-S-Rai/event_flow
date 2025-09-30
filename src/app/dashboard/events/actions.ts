@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { createEvent } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 const CreateEventSchema = z.object({
   name: z.string().min(1, 'Event name is required.'),
@@ -30,9 +31,10 @@ export async function createEventAction(
   });
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       message: 'Error: Please check the form fields.',
-      issues: validatedFields.error.flatten().fieldErrors[Object.keys(validatedFields.error.flatten().fieldErrors)[0]],
+      issues: Object.values(fieldErrors).flat(),
     };
   }
 
@@ -44,4 +46,3 @@ export async function createEventAction(
     return { message: 'Error: Failed to create event.' };
   }
 }
-

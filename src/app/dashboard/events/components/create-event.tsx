@@ -14,12 +14,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createEventAction } from '../actions';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -34,28 +35,28 @@ function SubmitButton() {
 export function CreateEvent() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const [state, formAction] = useActionState(createEventAction, {
     message: '',
   });
 
-  if (state.message.startsWith('Success')) {
-    toast({
-        title: 'Event Created',
-        description: 'Your new event has been successfully created.',
-    });
-    // The dialog doesn't close automatically on success, so we can manage the open state.
-    // A better way would be to use a form library that can reset state on submission.
-    if (open) {
+  useEffect(() => {
+    if (state.message.startsWith('Success')) {
+        toast({
+            title: 'Event Created',
+            description: 'Your new event has been successfully created.',
+        });
         setOpen(false);
+        router.push('/dashboard/events');
+    } else if (state.message.startsWith('Error')) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: state.issues?.[0] || 'An unexpected error occurred.',
+        });
     }
-  } else if (state.message.startsWith('Error')) {
-    toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: state.issues?.[0] || 'An unexpected error occurred.',
-    });
-  }
+  }, [state, toast, router]);
 
 
   return (
