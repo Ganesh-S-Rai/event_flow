@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Loader2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MessageSquare, Pilcrow, Wand2 } from 'lucide-react';
+import { Plus, Trash2, Loader2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MessageSquare, Pilcrow, Wand2, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { type Event, type Block } from '@/lib/data';
@@ -16,6 +16,7 @@ import { useFormStatus } from 'react-dom';
 import { EventPageClient } from '@/app/events/components/event-page-client';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 // --- Helper Functions ---
 const slugify = (text: string) => text.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
@@ -153,18 +154,41 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
         switch (block.type) {
             case 'heading':
                 return (
-                    <div className="flex items-center gap-2">
-                        <Input value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} className="text-2xl font-bold border-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-                        <Button variant="ghost" size="icon" onClick={() => setIsTextGenOpen(true)}><Wand2 className="h-4 w-4" /></Button>
-                        <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText} currentText={block.content.text} />
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Input value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} className="text-2xl font-bold border-none focus-visible:ring-0 focus-visible:ring-offset-0" />
+                            <Button variant="ghost" size="icon" onClick={() => setIsTextGenOpen(true)}><Wand2 className="h-4 w-4" /></Button>
+                            <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText} currentText={block.content.text} />
+                        </div>
+                        <div className="flex items-center justify-between p-1 rounded-md bg-muted">
+                           <ToggleGroup type="single" size="sm" value={block.content.level || 'h2'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, level: value})}>
+                               <ToggleGroupItem value="h1" aria-label="Heading 1"><Heading1 className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="h2" aria-label="Heading 2"><Heading2 className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="h3" aria-label="Heading 3"><Heading3 className="h-4 w-4" /></ToggleGroupItem>
+                           </ToggleGroup>
+                           <ToggleGroup type="single" size="sm" value={block.content.alignment || 'left'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, alignment: value})}>
+                               <ToggleGroupItem value="left" aria-label="Align left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="center" aria-label="Align center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="right" aria-label="Align right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
+                           </ToggleGroup>
+                        </div>
                     </div>
                 );
             case 'text':
                 return (
-                     <div className="flex items-center gap-2">
-                        <Textarea value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} rows={4} className="border-none focus-visible:ring-0 focus-visible:ring-offset-0" />
-                        <Button variant="ghost" size="icon" onClick={() => setIsTextGenOpen(true)}><Wand2 className="h-4 w-4" /></Button>
-                         <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText} currentText={block.content.text} />
+                     <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                            <Textarea value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} rows={4} className="border-none focus-visible:ring-0 focus-visible:ring-offset-0" />
+                            <Button variant="ghost" size="icon" onClick={() => setIsTextGenOpen(true)}><Wand2 className="h-4 w-4" /></Button>
+                            <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText} currentText={block.content.text} />
+                        </div>
+                        <div className="flex items-center justify-end p-1 rounded-md bg-muted">
+                           <ToggleGroup type="single" size="sm" value={block.content.alignment || 'left'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, alignment: value})}>
+                               <ToggleGroupItem value="left" aria-label="Align left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="center" aria-label="Align center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="right" aria-label="Align right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
+                           </ToggleGroup>
+                        </div>
                     </div>
                 );
             case 'image':
@@ -184,7 +208,7 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
 
     return (
         <div className="p-3 border rounded-md space-y-2 relative group bg-background">
-            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onMove(block.id, 'up')}><ArrowUp className="h-4 w-4" /></Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onMove(block.id, 'down')}><ArrowDown className="h-4 w-4" /></Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(block.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
@@ -320,3 +344,5 @@ export function Editor({ event: initialEvent }: { event: Event }) {
     </form>
   );
 }
+
+    

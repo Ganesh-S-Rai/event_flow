@@ -252,3 +252,5 @@ export function EventPageClient({ event }: { event: Event }) {
     </div>
   );
 }
+
+    
