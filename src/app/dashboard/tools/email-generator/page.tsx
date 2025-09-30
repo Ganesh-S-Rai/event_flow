@@ -1,6 +1,9 @@
+import { getEvents } from '@/lib/data';
 import { EmailGeneratorForm } from './email-form';
 
-export default function EmailGeneratorPage() {
+export default async function EmailGeneratorPage() {
+  const events = await getEvents();
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="space-y-2 mb-8">
@@ -11,7 +14,7 @@ export default function EmailGeneratorPage() {
           Craft compelling marketing emails in seconds. Just provide the event details, and let our AI do the rest.
         </p>
       </div>
-      <EmailGeneratorForm />
+      <EmailGeneratorForm events={events} />
     </div>
   );
 }

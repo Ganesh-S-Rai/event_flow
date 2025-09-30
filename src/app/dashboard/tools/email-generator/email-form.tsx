@@ -21,10 +21,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { generateEmailAction } from './actions';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Copy, Wand2, Loader2, ClipboardCheck } from 'lucide-react';
-import { useState } from 'react';
+import type { Event } from '@/lib/data';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -41,27 +41,32 @@ function SubmitButton() {
 }
 
 function CopyButton({ textToCopy }: { textToCopy: string }) {
-    const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        });
-    };
+  const handleCopy = () => {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
-    return (
-        <Button variant="ghost" size="icon" onClick={handleCopy}>
-            {copied ? <ClipboardCheck className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-            <span className="sr-only">Copy</span>
-        </Button>
-    );
+  return (
+    <Button variant="ghost" size="icon" onClick={handleCopy}>
+      {copied ? (
+        <ClipboardCheck className="h-4 w-4 text-green-500" />
+      ) : (
+        <Copy className="h-4 w-4" />
+      )}
+      <span className="sr-only">Copy</span>
+    </Button>
+  );
 }
 
-export function EmailGeneratorForm() {
+export function EmailGeneratorForm({ events }: { events: Event[] }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
   const [state, formAction] = useFormState(generateEmailAction, {
     message: '',
   });
@@ -74,13 +79,30 @@ export function EmailGeneratorForm() {
         description: state.issues?.[0] || 'Please review your inputs.',
       });
     } else if (state.message && state.data) {
-        toast({
-            title: 'Generation Successful',
-            description: 'Your email copy is ready.',
-        });
+      toast({
+        title: 'Generation Successful',
+        description: 'Your email copy is ready.',
+      });
     }
   }, [state, toast]);
 
+  const handleEventChange = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (event) {
+      setSelectedEvent(event);
+    } else {
+      setSelectedEvent(null);
+    }
+  };
+  
+  useEffect(() => {
+    if (selectedEvent && formRef.current) {
+      (formRef.current.elements.namedItem('eventName') as HTMLInputElement).value = selectedEvent.name;
+      (formRef.current.elements.namedItem('eventDate') as HTMLInputElement).value = new Date(selectedEvent.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      (formRef.current.elements.namedItem('eventLocation') as HTMLInputElement).value = selectedEvent.location;
+      (formRef.current.elements.namedItem('eventDescription') as HTMLTextAreaElement).value = selectedEvent.description;
+    }
+  }, [selectedEvent]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -89,10 +111,25 @@ export function EmailGeneratorForm() {
           <CardHeader>
             <CardTitle>Event Details</CardTitle>
             <CardDescription>
-              Provide the details for your event to generate marketing content.
+              Select an existing event or provide new details to generate marketing content.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+                <Label htmlFor="event-select">Select an Event (Optional)</Label>
+                <Select onValueChange={handleEventChange}>
+                    <SelectTrigger id="event-select">
+                        <SelectValue placeholder="Choose an existing event..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {events.map((event) => (
+                            <SelectItem key={event.id} value={event.id}>
+                                {event.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="eventName">Event Name</Label>
               <Input
@@ -100,6 +137,7 @@ export function EmailGeneratorForm() {
                 name="eventName"
                 placeholder="e.g., InnovateX 2024"
                 defaultValue={state.fields?.eventName}
+                key={selectedEvent?.id ? `name-${selectedEvent.id}`: 'name-new'}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -110,6 +148,7 @@ export function EmailGeneratorForm() {
                   name="eventDate"
                   placeholder="e.g., October 26, 2024"
                   defaultValue={state.fields?.eventDate}
+                  key={selectedEvent?.id ? `date-${selectedEvent.id}`: 'date-new'}
                 />
               </div>
               <div className="grid gap-2">
@@ -119,6 +158,7 @@ export function EmailGeneratorForm() {
                   name="eventLocation"
                   placeholder="e.g., San Francisco, CA"
                   defaultValue={state.fields?.eventLocation}
+                  key={selectedEvent?.id ? `location-${selectedEvent.id}`: 'location-new'}
                 />
               </div>
             </div>
@@ -129,6 +169,7 @@ export function EmailGeneratorForm() {
                 name="eventDescription"
                 placeholder="Describe your event in a few sentences."
                 defaultValue={state.fields?.eventDescription}
+                key={selectedEvent?.id ? `description-${selectedEvent.id}`: 'description-new'}
               />
             </div>
             <div className="grid gap-2">
