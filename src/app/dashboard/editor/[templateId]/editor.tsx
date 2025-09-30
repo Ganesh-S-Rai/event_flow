@@ -17,22 +17,31 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { Calendar, MapPin, Ticket } from 'lucide-react';
 import Link from 'next/link';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
-// This is a simplified preview component. In a real app, this would be more dynamic
-// and likely correspond to the actual template being edited.
+
 function LandingPagePreview({
-  title,
-  description,
-  cta,
+  heroTitle,
+  heroDescription,
+  heroCta,
+  aboutTitle,
+  aboutDescription,
 }: {
-  title: string;
-  description: string;
-  cta: string;
+  heroTitle: string;
+  heroDescription: string;
+  heroCta: string;
+  aboutTitle: string;
+  aboutDescription: string;
 }) {
   const event = {
-    name: title || 'Your Event Name',
+    name: heroTitle || 'Your Event Name',
     description:
-      description ||
+      heroDescription ||
       'This is where your event description will go. Keep it engaging!',
     date: '2024-10-26',
     location: 'San Francisco, CA',
@@ -52,7 +61,7 @@ function LandingPagePreview({
           <Button asChild>
             <Link href="#register">
               <Ticket className="mr-2" />
-              {cta || 'Register Now'}
+              {heroCta || 'Register Now'}
             </Link>
           </Button>
         </nav>
@@ -89,7 +98,7 @@ function LandingPagePreview({
               </div>
             </div>
             <Button asChild size="lg">
-              <Link href="#register">{cta || 'Register Today'}</Link>
+              <Link href="#register">{heroCta || 'Register Today'}</Link>
             </Button>
           </div>
         </section>
@@ -99,10 +108,10 @@ function LandingPagePreview({
           <div className="container px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                About The Event
+                {aboutTitle}
               </h2>
               <p className="mt-4 text-muted-foreground md:text-xl">
-                {event.description}
+                {aboutDescription}
               </p>
             </div>
           </div>
@@ -118,11 +127,18 @@ export function Editor({
 }: {
   templateId: string;
 }) {
+  // Hero States
   const [heroTitle, setHeroTitle] = useState('InnovateX 2024');
   const [heroDescription, setHeroDescription] = useState(
     'The premier conference for technology and innovation. Join industry leaders, venture capitalists, and brilliant founders to explore the future of tech.'
   );
   const [heroCta, setHeroCta] = useState('Register Now');
+
+  // About States
+  const [aboutTitle, setAboutTitle] = useState('About The Event');
+  const [aboutDescription, setAboutDescription] = useState(
+    'This is where your event description will go. It should be exciting and informative, telling people why they should attend.'
+  );
 
   return (
     <div className="space-y-4 h-full">
@@ -140,53 +156,90 @@ export function Editor({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
         {/* Editor Form */}
         <div className="lg:col-span-1 overflow-y-auto pr-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Hero Section</CardTitle>
-              <CardDescription>
-                Customize the main section of your landing page.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="hero-title">Title</Label>
-                <Input
-                  id="hero-title"
-                  value={heroTitle}
-                  onChange={(e) => setHeroTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="hero-description">Description</Label>
-                <Textarea
-                  id="hero-description"
-                  value={heroDescription}
-                  onChange={(e) => setHeroDescription(e.target.value)}
-                  rows={5}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="hero-cta">Button Text (CTA)</Label>
-                <Input
-                  id="hero-cta"
-                  value={heroCta}
-                  onChange={(e) => setHeroCta(e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Separator className="my-6" />
-
-          {/* Placeholder for more sections */}
-          <p className="text-center text-muted-foreground">More sections coming soon...</p>
-
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2']} className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>
+                <h3 className="text-lg font-medium">Hero Section</h3>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 p-1">
+                  <div className="space-y-2">
+                    <Label htmlFor="hero-title">Title</Label>
+                    <Input
+                      id="hero-title"
+                      value={heroTitle}
+                      onChange={(e) => setHeroTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hero-description">Description</Label>
+                    <Textarea
+                      id="hero-description"
+                      value={heroDescription}
+                      onChange={(e) => setHeroDescription(e.target.value)}
+                      rows={5}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hero-cta">Button Text (CTA)</Label>
+                    <Input
+                      id="hero-cta"
+                      value={heroCta}
+                      onChange={(e) => setHeroCta(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+              <AccordionTrigger>
+                <h3 className="text-lg font-medium">About Section</h3>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 p-1">
+                  <div className="space-y-2">
+                    <Label htmlFor="about-title">Section Title</Label>
+                    <Input
+                      id="about-title"
+                      value={aboutTitle}
+                      onChange={(e) => setAboutTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="about-description">Section Description</Label>
+                    <Textarea
+                      id="about-description"
+                      value={aboutDescription}
+                      onChange={(e) => setAboutDescription(e.target.value)}
+                      rows={5}
+                    />
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3" disabled>
+               <AccordionTrigger>
+                <h3 className="text-lg font-medium">Speakers (coming soon)</h3>
+              </AccordionTrigger>
+            </AccordionItem>
+             <AccordionItem value="item-4" disabled>
+               <AccordionTrigger>
+                <h3 className="text-lg font-medium">Agenda (coming soon)</h3>
+              </AccordionTrigger>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         {/* Live Preview */}
         <div className="lg:col-span-2 bg-muted/20 rounded-lg h-full overflow-hidden">
             <div className="w-full h-full transform">
-                <LandingPagePreview title={heroTitle} description={heroDescription} cta={heroCta} />
+                <LandingPagePreview 
+                  heroTitle={heroTitle} 
+                  heroDescription={heroDescription} 
+                  heroCta={heroCta}
+                  aboutTitle={aboutTitle}
+                  aboutDescription={aboutDescription}
+                />
             </div>
         </div>
       </div>
