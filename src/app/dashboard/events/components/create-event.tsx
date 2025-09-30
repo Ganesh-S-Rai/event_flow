@@ -14,10 +14,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useEffect, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createEventAction } from '../actions';
-import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';

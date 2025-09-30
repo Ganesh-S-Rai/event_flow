@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useActionState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import {
   Card,
   CardContent,
@@ -21,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { generateEmailAction } from './actions';
-import { useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Copy, Wand2, Loader2, ClipboardCheck } from 'lucide-react';
 import type { Event } from '@/lib/data';
