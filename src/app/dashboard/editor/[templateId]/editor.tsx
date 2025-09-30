@@ -344,6 +344,11 @@ export function Editor({
     setFormFields(formFields.map(f => f.id === id ? { ...f, [field]: value } : f));
   };
 
+  const handleFormFieldOptionsChange = (id: string, value: string) => {
+    const options = value.split(',').map(opt => opt.trim());
+    setFormFields(formFields.map(f => f.id === id ? { ...f, options } : f));
+  }
+
   const handleFormFieldTypeChange = (id: string, type: FormField['type']) => {
     setFormFields(formFields.map(f => f.id === id ? { ...f, type } : f));
   }
@@ -372,7 +377,7 @@ export function Editor({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
         {/* Editor Form */}
         <div className="lg:col-span-1 overflow-y-auto pr-4">
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4', 'item-5']} className="w-full">
+          <Accordion type="multiple" className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>
                 <h3 className="text-lg font-medium">Hero Section</h3>
@@ -536,6 +541,18 @@ export function Editor({
                           </SelectContent>
                         </Select>
                       </div>
+                      {field.type === 'select' && (
+                        <div className="space-y-2">
+                          <Label htmlFor={`form-options-${field.id}`}>Options (comma-separated)</Label>
+                          <Textarea 
+                            id={`form-options-${field.id}`} 
+                            placeholder="Option 1, Option 2, Option 3" 
+                            defaultValue={field.options?.join(', ')} 
+                            onChange={(e) => handleFormFieldOptionsChange(field.id, e.target.value)} 
+                            rows={2}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                   <Button variant="outline" onClick={addFormField} className="w-full">
