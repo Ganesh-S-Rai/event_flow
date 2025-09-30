@@ -4,7 +4,7 @@
 import { useState, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { Calendar, MapPin, Ticket, CheckCircle, Download, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -159,6 +159,19 @@ function RenderBlock({ block, onButtonClick }: { block: Block; onButtonClick?: (
   }[alignment] || 'text-left';
 
   switch (type) {
+    case 'hero':
+        return (
+            <section className="relative w-full h-[60vh] flex items-center justify-center text-center text-white">
+                <Image src={content.backgroundImageSrc} alt={content.headline || 'Hero background'} fill className="object-cover -z-10 brightness-50" />
+                <div className="space-y-4 p-4">
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">{content.headline}</h1>
+                    <p className="text-lg md:text-xl/relaxed max-w-2xl mx-auto">{content.text}</p>
+                    {content.buttonText && (
+                        <Button size="lg" onClick={onButtonClick}>{content.buttonText}</Button>
+                    )}
+                </div>
+            </section>
+        )
     case 'heading':
       const Tag = content.level || 'h2';
       const sizeClass = {
@@ -179,11 +192,21 @@ function RenderBlock({ block, onButtonClick }: { block: Block; onButtonClick?: (
       );
     
     case 'button':
+        const button = (
+            <Button size={(content.size || 'default') as ButtonProps['size']} className="mt-4" onClick={onButtonClick}>
+                {content.text}
+            </Button>
+        );
+
         return (
             <div className={alignmentClass}>
-                <Button size="lg" className="mt-4" onClick={onButtonClick}>
-                    {content.text}
-                </Button>
+                {content.href ? (
+                    <Link href={content.href} target="_blank" rel="noopener noreferrer">
+                        {button}
+                    </Link>
+                ) : (
+                    button
+                )}
             </div>
         );
 
@@ -203,6 +226,8 @@ export function EventPageClient({ event }: { event: Event }) {
     }
   };
 
+  const hasHeroBlock = content.some(block => block.type === 'hero');
+
   return (
     <div className="bg-background text-foreground">
        {formFields.length > 0 && (
@@ -214,7 +239,7 @@ export function EventPageClient({ event }: { event: Event }) {
             eventName={event.name}
           />
        )}
-      <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-20 border-b">
+      <header className={`px-4 lg:px-6 h-14 flex items-center z-20 ${hasHeroBlock ? 'absolute top-0 left-0 right-0 bg-transparent text-white' : 'sticky top-0 bg-background/80 backdrop-blur-sm border-b'}`}>
         <Link href="#" className="flex items-center justify-center font-bold" prefetch={false}>
           {event.name}
         </Link>
@@ -230,13 +255,14 @@ export function EventPageClient({ event }: { event: Event }) {
         </nav>
       </header>
       <main>
-        <section className="py-12 md:py-24">
+        {/* If there's no hero block, add default padding */}
+        <div className={hasHeroBlock ? '' : 'py-12 md:py-24'}>
             <div className="container px-4 md:px-6 space-y-6">
                 {content.map(block => (
                     <RenderBlock key={block.id} block={block} onButtonClick={handleOpenForm} />
                 ))}
             </div>
-        </section>
+        </div>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">&copy; 2024 {event.name}. All rights reserved.</p>
@@ -252,5 +278,3 @@ export function EventPageClient({ event }: { event: Event }) {
     </div>
   );
 }
-
-    

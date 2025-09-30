@@ -7,7 +7,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 // --- Block Types for Landing Page Content ---
 export type Block = {
   id: string;
-  type: 'heading' | 'text' | 'image' | 'speaker' | 'agenda' | 'button';
+  type: 'heading' | 'text' | 'image' | 'speaker' | 'agenda' | 'button' | 'hero';
   content: any; // This will vary based on the block type
 };
 
@@ -54,12 +54,10 @@ const templates: Template[] = [
       description: 'A sleek, professional template for tech conferences and corporate events.',
       imageUrl: 'https://picsum.photos/seed/tpl1/600/400',
       content: [
-        { id: 'block-1', type: 'heading', content: { text: 'InnovateX 2024', level: 'h1', alignment: 'center' } },
-        { id: 'block-2', type: 'text', content: { text: 'Join us for the most anticipated tech conference of the year. Discover the future of innovation.', alignment: 'center' } },
-        { id: 'block-3', type: 'image', content: { src: 'https://picsum.photos/seed/event-hero/1200/500', alt: 'Conference stage' } },
-        { id: 'block-4', type: 'button', content: { text: 'Register Now', alignment: 'center' } },
-        { id: 'block-5', type: 'heading', content: { text: 'About The Event', level: 'h2', alignment: 'center' } },
-        { id: 'block-6', type: 'text', content: { text: 'This is where your event description will go. It should be exciting and informative, telling people why they should attend. This template provides a clean and modern layout to showcase your event details effectively.', alignment: 'left' } },
+        { id: 'block-1', type: 'hero', content: { headline: 'InnovateX 2024', text: 'Join us for the most anticipated tech conference of the year. Discover the future of innovation.', buttonText: 'Register Now', backgroundImageSrc: 'https://picsum.photos/seed/event-hero/1200/800' } },
+        { id: 'block-2', type: 'heading', content: { text: 'About The Event', level: 'h2', alignment: 'center' } },
+        { id: 'block-3', type: 'text', content: { text: 'This is where your event description will go. It should be exciting and informative, telling people why they should attend. This template provides a clean and modern layout to showcase your event details effectively.', alignment: 'left' } },
+        { id: 'block-4', type: 'image', content: { src: 'https://picsum.photos/seed/img1/1200/500', alt: 'Conference stage' } },
       ]
     },
     {
@@ -68,12 +66,9 @@ const templates: Template[] = [
       description: 'A vibrant and artistic template perfect for workshops and creative gatherings.',
       imageUrl: 'https://picsum.photos/seed/tpl2/600/400',
       content: [
-        { id: 'block-1', type: 'image', content: { src: 'https://picsum.photos/seed/workshop-hero/1200/500', alt: 'Creative workshop in session' } },
-        { id: 'block-2', type: 'heading', content: { text: 'Unlock Your Creativity', level: 'h1', alignment: 'center' } },
-        { id: 'block-3', type: 'text', content: { text: 'A hands-on workshop designed for artists, designers, and creators of all levels.', alignment: 'center' } },
-        { id: 'block-4', type: 'button', content: { text: 'Reserve Your Spot', alignment: 'center' } },
-        { id: 'block-5', type: 'heading', content: { text: 'What You Will Learn', level: 'h2', alignment: 'left' } },
-        { id: 'block-6', type: 'text', content: { text: 'This workshop covers a variety of techniques and skills. You will leave with a completed project and a new set of creative tools.', alignment: 'left' } },
+        { id: 'block-1', type: 'hero', content: { headline: 'Unlock Your Creativity', text: 'A hands-on workshop designed for artists, designers, and creators of all levels.', buttonText: 'Reserve Your Spot', backgroundImageSrc: 'https://picsum.photos/seed/workshop-hero/1200/800' } },
+        { id: 'block-2', type: 'heading', content: { text: 'What You Will Learn', level: 'h2', alignment: 'left' } },
+        { id: 'block-3', type: 'text', content: { text: 'This workshop covers a variety of techniques and skills. You will leave with a completed project and a new set of creative tools.', alignment: 'left' } },
       ]
     },
     {
@@ -85,7 +80,7 @@ const templates: Template[] = [
         { id: 'block-1', type: 'heading', content: { text: 'Community Networking Night', level: 'h1', alignment: 'left' } },
         { id: 'block-2', type: 'text', content: { text: 'Connect with local professionals and enthusiasts in a relaxed and friendly atmosphere.', alignment: 'left' } },
         { id: 'block-3', type: 'button', content: { text: 'RSVP Now', alignment: 'left' } },
-        { id: 'block-4', type: 'image', content: { src: 'https://picsum.photos/seed/meetup-hero/1200/500', alt: 'People networking at a meetup' } },
+        { id: 'block-4', 'type': 'image', content: { src: 'https://picsum.photos/seed/meetup-hero/1200/500', alt: 'People networking at a meetup' } },
         { id: 'block-5', type: 'heading', content: { text: 'Event Details', level: 'h2', alignment: 'left' } },
         { id: 'block-6', type: 'text', content: { text: 'Join us for an evening of networking, snacks, and great conversations. We look forward to seeing you there!', alignment: 'left' } },
       ]
@@ -144,6 +139,11 @@ export const getEventById = async (id: string): Promise<Event | undefined> => {
                     registrations: 0,
                     status: 'Draft',
                     content: template.content, // Use the block content from the template
+                    formFields: [ // Add default form fields for new events from templates
+                        { id: 'ff-fname', label: 'First Name', type: 'text', placeholder: 'Enter your first name' },
+                        { id: 'ff-lname', label: 'Last Name', type: 'text', placeholder: 'Enter your last name' },
+                        { id: 'ff-email', label: 'Work Email', type: 'email', placeholder: 'name@company.com' },
+                    ]
                 };
             }
             console.log("No such document or template!");
@@ -194,7 +194,9 @@ export const updateEvent = async (eventId: string, eventData: Partial<Event>) =>
                 name: eventData.name || 'New Event',
                 date: eventData.date || new Date().toISOString(),
                 location: eventData.location || 'Online',
-                description: eventData.description || ''
+                description: eventData.description || '',
+                content: eventData.content || [],
+                formFields: eventData.formFields || [],
             });
             const eventRef = doc(db, 'events', newId);
             await updateDoc(eventRef, eventData);

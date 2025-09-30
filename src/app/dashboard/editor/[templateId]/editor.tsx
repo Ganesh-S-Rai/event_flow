@@ -6,17 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Loader2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MessageSquare, Pilcrow, Wand2, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3 } from 'lucide-react';
+import { Plus, Trash2, Loader2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MessageSquare, Pilcrow, Wand2, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3, Edit, Star } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { type Event, type Block } from '@/lib/data';
-import { publishEventAction, generateTextBlockAction, generateImageBlockAction } from './actions';
+import { publishEventAction, generateTextBlockAction, generateImageBlockAction, generateEditedImageAction } from './actions';
 import { Badge } from '@/components/ui/badge';
 import { useFormStatus } from 'react-dom';
 import { EventPageClient } from '@/app/events/components/event-page-client';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Separator } from '@/components/ui/separator';
 
 // --- Helper Functions ---
 const slugify = (text: string) => text.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
@@ -33,6 +34,7 @@ function PublishButton({status}: {status: Event['status']}) {
 
 function AddBlockPopover({ onAddBlock }: { onAddBlock: (type: Block['type']) => void }) {
   const blockTypes: { type: Block['type']; label: string; icon: React.ElementType }[] = [
+    { type: 'hero', label: 'Hero', icon: Star },
     { type: 'heading', label: 'Heading', icon: Type },
     { type: 'text', label: 'Text', icon: Pilcrow },
     { type: 'image', label: 'Image', icon: ImageIcon },
@@ -137,28 +139,103 @@ function GenerateImageDialog({ open, onOpenChange, onGenerate }: { open: boolean
     );
 }
 
+function EditImageDialog({ open, onOpenChange, onGenerate, currentImage }: { open: boolean, onOpenChange: (open: boolean) => void, onGenerate: (url: string) => void, currentImage: string }) {
+    const [prompt, setPrompt] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
+
+    const handleGenerate = async () => {
+        if (!currentImage) {
+            toast({ variant: 'destructive', title: 'Error', description: 'No image to edit.' });
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const result = await generateEditedImageAction({ prompt, imageUrl: currentImage });
+            if (result.error) throw new Error(result.error);
+            onGenerate(result.imageUrl!);
+            onOpenChange(false);
+            setPrompt('');
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message || 'Failed to edit image.' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Edit Image with AI</DialogTitle>
+                    <DialogDescription>Describe how you want to change the current image.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <Textarea placeholder="e.g., make it black and white, add a cat in the foreground" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+                </div>
+                <Button onClick={handleGenerate} disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Apply Edits'}
+                </Button>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 
 function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUpdate: (id: string, content: any) => void, onRemove: (id: string) => void, onMove: (id: string, direction: 'up' | 'down') => void }) {
     const [isTextGenOpen, setIsTextGenOpen] = useState(false);
     const [isImageGenOpen, setIsImageGenOpen] = useState(false);
+    const [isImageEditOpen, setIsImageEditOpen] = useState(false);
     
-    const handleGenerateText = (newText: string) => {
-        onUpdate(block.id, { ...block.content, text: newText });
+    const handleGenerateText = (field: string) => (newText: string) => {
+        onUpdate(block.id, { ...block.content, [field]: newText });
     };
 
-    const handleGenerateImage = (newUrl: string) => {
-        onUpdate(block.id, { ...block.content, src: newUrl });
+    const handleGenerateImage = (field: string) => (newUrl: string) => {
+        onUpdate(block.id, { ...block.content, [field]: newUrl });
     };
 
     const renderBlock = () => {
         switch (block.type) {
+            case 'hero':
+                return (
+                    <div className="space-y-4">
+                        <div>
+                            <Label>Background Image URL</Label>
+                            <Input value={block.content.backgroundImageSrc || ''} onChange={(e) => onUpdate(block.id, { ...block.content, backgroundImageSrc: e.target.value })} placeholder="Image URL" />
+                            <div className="flex gap-2 mt-2">
+                                <Button variant="outline" size="sm" onClick={() => setIsImageGenOpen(true)}><Wand2 className="mr-2 h-4 w-4" /> Generate New</Button>
+                                <Button variant="outline" size="sm" onClick={() => setIsImageEditOpen(true)} disabled={!block.content.backgroundImageSrc}><Edit className="mr-2 h-4 w-4" /> Edit with AI</Button>
+                            </div>
+                            <GenerateImageDialog open={isImageGenOpen} onOpenChange={setIsImageGenOpen} onGenerate={handleGenerateImage('backgroundImageSrc')} />
+                            <EditImageDialog open={isImageEditOpen} onOpenChange={setIsImageEditOpen} onGenerate={handleGenerateImage('backgroundImageSrc')} currentImage={block.content.backgroundImageSrc} />
+                        </div>
+                        <Separator />
+                        <div className="space-y-2">
+                             <Label>Headline Text</Label>
+                            <div className="flex items-center gap-2">
+                                <Input value={block.content.headline || ''} onChange={(e) => onUpdate(block.id, { ...block.content, headline: e.target.value })} />
+                                <Button variant="ghost" size="icon" onClick={() => setIsTextGenOpen(true)}><Wand2 className="h-4 w-4" /></Button>
+                                <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText('headline')} currentText={block.content.headline} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Subtext</Label>
+                            <Textarea value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} rows={3} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Button Text</Label>
+                            <Input value={block.content.buttonText || ''} onChange={(e) => onUpdate(block.id, { ...block.content, buttonText: e.target.value })} />
+                        </div>
+                    </div>
+                );
             case 'heading':
                 return (
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <Input value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} className="text-2xl font-bold border-none focus-visible:ring-0 focus-visible:ring-offset-0" />
                             <Button variant="ghost" size="icon" onClick={() => setIsTextGenOpen(true)}><Wand2 className="h-4 w-4" /></Button>
-                            <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText} currentText={block.content.text} />
+                            <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText('text')} currentText={block.content.text} />
                         </div>
                         <div className="flex items-center justify-between p-1 rounded-md bg-muted">
                            <ToggleGroup type="single" size="sm" value={block.content.level || 'h2'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, level: value})}>
@@ -180,7 +257,7 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                         <div className="flex items-start gap-2">
                             <Textarea value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} rows={4} className="border-none focus-visible:ring-0 focus-visible:ring-offset-0" />
                             <Button variant="ghost" size="icon" onClick={() => setIsTextGenOpen(true)}><Wand2 className="h-4 w-4" /></Button>
-                            <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText} currentText={block.content.text} />
+                            <GenerateTextDialog open={isTextGenOpen} onOpenChange={setIsTextGenOpen} onGenerate={handleGenerateText('text')} currentText={block.content.text} />
                         </div>
                         <div className="flex items-center justify-end p-1 rounded-md bg-muted">
                            <ToggleGroup type="single" size="sm" value={block.content.alignment || 'left'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, alignment: value})}>
@@ -195,12 +272,42 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                 return (
                     <div>
                         <Input value={block.content.src || ''} onChange={(e) => onUpdate(block.id, { ...block.content, src: e.target.value })} placeholder="Image URL" />
-                        <Button variant="outline" size="sm" className="mt-2" onClick={() => setIsImageGenOpen(true)}><Wand2 className="mr-2 h-4 w-4" /> Generate Image</Button>
-                        <GenerateImageDialog open={isImageGenOpen} onOpenChange={setIsImageGenOpen} onGenerate={handleGenerateImage} />
+                        <div className="flex gap-2 mt-2">
+                            <Button variant="outline" size="sm" onClick={() => setIsImageGenOpen(true)}><Wand2 className="mr-2 h-4 w-4" /> Generate New</Button>
+                            <Button variant="outline" size="sm" onClick={() => setIsImageEditOpen(true)} disabled={!block.content.src}><Edit className="mr-2 h-4 w-4" /> Edit with AI</Button>
+                        </div>
+                        <GenerateImageDialog open={isImageGenOpen} onOpenChange={setIsImageGenOpen} onGenerate={handleGenerateImage('src')} />
+                        <EditImageDialog open={isImageEditOpen} onOpenChange={setIsImageEditOpen} onGenerate={handleGenerateImage('src')} currentImage={block.content.src} />
                     </div>
                 );
             case 'button':
-                return <Input value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} placeholder="Button Text" />;
+                return (
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Button Text</Label>
+                            <Input value={block.content.text || ''} onChange={(e) => onUpdate(block.id, { ...block.content, text: e.target.value })} placeholder="Button Text" />
+                        </div>
+                        <div className="space-y-2">
+                             <Label>Button URL (Optional)</Label>
+                            <Input value={block.content.href || ''} onChange={(e) => onUpdate(block.id, { ...block.content, href: e.target.value })} placeholder="https://example.com" />
+                            <p className="text-xs text-muted-foreground">If empty, button will open registration form.</p>
+                        </div>
+                        <div className="flex items-center justify-between p-1 rounded-md bg-muted">
+                            <Label className="pl-2">Size</Label>
+                            <ToggleGroup type="single" size="sm" value={block.content.size || 'default'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, size: value})}>
+                               <ToggleGroupItem value="sm" aria-label="Small">S</ToggleGroupItem>
+                               <ToggleGroupItem value="default" aria-label="Default">M</ToggleGroupItem>
+                               <ToggleGroupItem value="lg" aria-label="Large">L</ToggleGroupItem>
+                           </ToggleGroup>
+                           <Label className="pl-2">Alignment</Label>
+                           <ToggleGroup type="single" size="sm" value={block.content.alignment || 'left'} onValueChange={(value) => value && onUpdate(block.id, {...block.content, alignment: value})}>
+                               <ToggleGroupItem value="left" aria-label="Align left"><AlignLeft className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="center" aria-label="Align center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
+                               <ToggleGroupItem value="right" aria-label="Align right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
+                           </ToggleGroup>
+                        </div>
+                    </div>
+                );
             default:
                 return <p>Unsupported block type</p>;
         }
@@ -258,10 +365,11 @@ export function Editor({ event: initialEvent }: { event: Event }) {
     };
     // Initialize with default content based on type
     switch (type) {
+      case 'hero': newBlock.content = { headline: 'Your Event Headline', text: 'Engaging subtext about your event.', buttonText: 'Register Now', backgroundImageSrc: 'https://picsum.photos/1200/800' }; break;
       case 'heading': newBlock.content = { text: 'New Heading', level: 'h2', alignment: 'left' }; break;
       case 'text': newBlock.content = { text: 'New paragraph text.', alignment: 'left' }; break;
       case 'image': newBlock.content = { src: 'https://picsum.photos/1200/500', alt: 'Placeholder' }; break;
-      case 'button': newBlock.content = { text: 'Click Me', alignment: 'left' }; break;
+      case 'button': newBlock.content = { text: 'Click Me', alignment: 'left', size: 'default' }; break;
     }
     setEvent(prev => ({ ...prev, content: [...(prev.content || []), newBlock] }));
   };
@@ -344,5 +452,3 @@ export function Editor({ event: initialEvent }: { event: Event }) {
     </form>
   );
 }
-
-    

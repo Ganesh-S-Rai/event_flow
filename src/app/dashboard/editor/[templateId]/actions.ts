@@ -6,6 +6,7 @@ import { updateEvent, type Event } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
 import { generateTextBlock } from '@/ai/flows/generate-text-block-flow';
 import { generateImageBlock } from '@/ai/flows/generate-image-block-flow';
+import { generateEditedImage } from '@/ai/flows/generate-edited-image-flow';
 
 const PublishEventSchema = z.object({
   eventId: z.string(),
@@ -91,6 +92,25 @@ export async function generateImageBlockAction(input: z.infer<typeof GenerateIma
   }
   try {
     const imageUrl = await generateImageBlock(validatedFields.data);
+    return { imageUrl };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to generate image.' };
+  }
+}
+
+// AI Action for editing images
+const GenerateEditedImageSchema = z.object({
+  prompt: z.string(),
+  imageUrl: z.string(),
+});
+
+export async function generateEditedImageAction(input: z.infer<typeof GenerateEditedImageSchema>): Promise<{ imageUrl?: string; error?: string }> {
+  const validatedFields = GenerateEditedImageSchema.safeParse(input);
+  if (!validatedFields.success) {
+    return { error: 'Invalid input.' };
+  }
+  try {
+    const imageUrl = await generateEditedImage(validatedFields.data);
     return { imageUrl };
   } catch (error: any) {
     return { error: error.message || 'Failed to generate image.' };
