@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A flow for registering a new lead and generating a QR code.
+ * @fileOverview A flow for registering a new lead, generating a QR code, and sending a confirmation email.
  *
  * - registerLead - A function that handles the lead registration process.
  * - RegisterLeadInput - The input type for the registerLead function.
@@ -13,6 +13,7 @@ import { z } from 'genkit';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import * as QRCode from 'qrcode';
+import { sendMarketingEmail } from './send-marketing-email-flow';
 
 const RegisterLeadInputSchema = z.object({
   eventId: z.string().describe('The ID of the event.'),
@@ -47,13 +48,15 @@ const registerLeadFlow = ai.defineFlow(
   },
   async (input) => {
     const { eventId, eventName, registrationDetails } = input;
+    const userEmail = registrationDetails.work_email || '';
+    const userName = `${registrationDetails.first_name || ''} ${
+      registrationDetails.last_name || ''
+    }`.trim();
 
     // 1. Create a new lead document in Firestore
     const leadData = {
-      name: `${registrationDetails.first_name || ''} ${
-        registrationDetails.last_name || ''
-      }`.trim(),
-      email: registrationDetails.work_email || '',
+      name: userName,
+      email: userEmail,
       eventId,
       eventName,
       status: 'New' as const,
@@ -71,6 +74,30 @@ const registerLeadFlow = ai.defineFlow(
         quality: 0.92,
         margin: 1,
     });
+
+    // 3. Send a confirmation email with the QR code
+    if (userEmail) {
+        const emailSubject = `Confirmation for ${eventName}`;
+        const emailBody = `
+            <h1>Registration Confirmed!</h1>
+            <p>Hi ${userName || 'there'},</p>
+            <p>Thank you for registering for <strong>${eventName}</strong>. We're excited to see you there!</p>
+            <p>Please keep this email handy. You'll need the QR code below for a smooth check-in at the event.</p>
+            <br>
+            <img src="${qrCodeDataUri}" alt="Your Registration QR Code" />
+            <br>
+            <p>See you at the event!</p>
+            <p><em>The EventFlow Team</em></p>
+        `;
+
+        // We can call the other flow directly. No need to await if we don't need the result here.
+        sendMarketingEmail({
+            toEmail: userEmail,
+            subject: emailSubject,
+            body: emailBody,
+        }).catch(console.error); // Log error if email sending fails, but don't block the response
+    }
+
 
     return {
       leadId,
