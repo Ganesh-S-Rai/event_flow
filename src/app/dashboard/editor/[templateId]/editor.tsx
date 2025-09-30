@@ -186,7 +186,6 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
     const [isTextGenOpen, setIsTextGenOpen] = useState(false);
     const [isImageGenOpen, setIsImageGenOpen] = useState(false);
     const [isImageEditOpen, setIsImageEditOpen] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
     
     const handleGenerateText = (field: string) => (newText: string) => {
