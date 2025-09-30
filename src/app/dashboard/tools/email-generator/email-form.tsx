@@ -240,13 +240,15 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                     <Label htmlFor="emailBody">Body</Label>
                     {state.data?.emailBody && <CopyButton textToCopy={state.data.emailBody} />}
                 </div>
-              <Textarea
-                id="emailBody"
-                readOnly
-                className="min-h-[350px] resize-none"
-                value={state.data?.emailBody || ''}
-                placeholder="Your generated email body will appear here."
-              />
+                <div 
+                    className="min-h-[350px] w-full rounded-md border border-input bg-background/30 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {state.data?.emailBody ? (
+                        <div dangerouslySetInnerHTML={{ __html: state.data.emailBody }} />
+                    ) : (
+                        <p className="text-muted-foreground">Your generated email body will appear here.</p>
+                    )}
+                </div>
             </div>
           </CardContent>
         </Card>

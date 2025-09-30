@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -24,7 +25,7 @@ export type GenerateMarketingEmailInput = z.infer<typeof GenerateMarketingEmailI
 
 const GenerateMarketingEmailOutputSchema = z.object({
   emailSubject: z.string().describe('The subject line for the marketing email.'),
-  emailBody: z.string().describe('The generated body of the marketing email.'),
+  emailBody: z.string().describe('The generated body of the marketing email, formatted in simple HTML with paragraphs and including personalization placeholders like {{firstName}}.'),
 });
 export type GenerateMarketingEmailOutput = z.infer<typeof GenerateMarketingEmailOutputSchema>;
 
@@ -38,10 +39,15 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateMarketingEmailOutputSchema},
   prompt: `You are an AI assistant specialized in crafting engaging marketing emails.
 
-  Based on the event details provided, generate a compelling email subject and body to attract the target audience.
-  Consider the event name, date, location, description, and desired call to action.
-  Maintain the specified tone throughout the email.
-
+  Based on the event details provided, generate a compelling email subject and a well-formatted HTML email body to attract the target audience.
+  
+  Instructions:
+  1.  **Email Body Format:** The email body MUST be in simple HTML format. Use <p> tags for paragraphs and <strong> tags for emphasis.
+  2.  **Personalization:** Include personalization placeholders where appropriate. Use Handlebars syntax, for example: 'Hi {{firstName}},'.
+  3.  **Tone and Content:** Maintain the specified tone and highlight the key benefits of attending the event.
+  4.  **Call to Action:** Ensure the call to action is clear and encourages the recipient to take the desired action.
+  
+  Event Details:
   Event Name: {{{eventName}}}
   Event Date: {{{eventDate}}}
   Event Location: {{{eventLocation}}}
@@ -49,14 +55,10 @@ const prompt = ai.definePrompt({
   Target Audience: {{{targetAudience}}}
   Call to Action: {{{callToAction}}}
   Tone: {{{tone}}}
-
+  
   Compose an email subject that is concise and attention-grabbing.
-  Write an email body that highlights the key benefits of attending the event and encourages the recipient to take the desired action.
-  Ensure the email is well-structured and easy to read.
-
-  Subject: {{emailSubject}}
-
-  Body: {{emailBody}}`,
+  Write the email body as a clean HTML string.
+  `,
 });
 
 const generateMarketingEmailFlow = ai.defineFlow(
