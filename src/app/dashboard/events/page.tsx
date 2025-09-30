@@ -1,6 +1,7 @@
 import { getEvents } from '@/lib/data';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
+import { CreateEvent } from './components/create-event';
 
 export default async function EventsPage() {
   const data = await getEvents();
@@ -14,6 +15,7 @@ export default async function EventsPage() {
             Here's a list of your events.
           </p>
         </div>
+        <CreateEvent />
       </div>
       <DataTable columns={columns} data={data} />
     </div>
