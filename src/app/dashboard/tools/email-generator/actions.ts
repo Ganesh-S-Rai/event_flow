@@ -22,6 +22,7 @@ const GenerateEmailSchema = z.object({
 const SendTestEmailSchema = z.object({
   toEmail: z.string().email('Please enter a valid email address.'),
   subject: z.string().min(1, 'Subject cannot be empty.'),
+  preheader: z.string().optional(),
   body: z.string().min(1, 'Body cannot be empty.'),
 });
 

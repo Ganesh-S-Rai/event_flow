@@ -267,6 +267,18 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
               />
             </div>
             <div className="grid gap-2">
+                <div className="flex justify-between items-center">
+                    <Label htmlFor="emailPreheader">Pre-header</Label>
+                    {generatedData?.emailPreheader && <CopyButton textToCopy={generatedData.emailPreheader} />}
+                </div>
+              <Input
+                id="emailPreheader"
+                readOnly
+                value={generatedData?.emailPreheader || ''}
+                placeholder="Your generated pre-header will appear here."
+              />
+            </div>
+            <div className="grid gap-2">
               <div className="flex justify-between items-center">
                     <Label htmlFor="emailBody">Body</Label>
                     {generatedData?.emailBody && <CopyButton textToCopy={generatedData.emailBody} />}
@@ -289,6 +301,7 @@ export function EmailGeneratorForm({ events }: { events: Event[] }) {
                     <h3 className="font-semibold text-sm">Send a Test</h3>
                     <form action={sendFormAction} className="w-full space-y-2">
                         <input type="hidden" name="subject" value={generatedData.emailSubject} />
+                        <input type="hidden" name="preheader" value={generatedData.emailPreheader || ''} />
                         <input type="hidden" name="body" value={generatedData.emailBody} />
                         <div className="flex w-full items-center gap-2">
                             <Input name="toEmail" type="email" placeholder="Recipient's Email Address" required className="flex-1"/>

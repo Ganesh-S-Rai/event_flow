@@ -16,6 +16,7 @@ const SendMarketingEmailInputSchema = z.object({
   toEmail: z.string().email().describe('The recipient\'s email address.'),
   subject: z.string().describe('The subject line of the email.'),
   body: z.string().describe('The HTML body of the email.'),
+  preheader: z.string().optional().describe('The pre-header text for the email.'),
 });
 export type SendMarketingEmailInput = z.infer<typeof SendMarketingEmailInputSchema>;
 
@@ -29,12 +30,24 @@ const sendMarketingEmailFlow = ai.defineFlow(
     inputSchema: SendMarketingEmailInputSchema,
     outputSchema: z.object({ success: z.boolean(), message: z.string() }),
   },
-  async ({ toEmail, subject, body }) => {
+  async ({ toEmail, subject, body, preheader }) => {
     try {
+      let finalHtml = body;
+
+      // Embed the pre-header as a hidden element at the start of the body
+      if (preheader) {
+        const preheaderHtml = `
+          <span style="display: none; font-size: 1px; line-height: 1px; max-height: 0; max-width: 0; opacity: 0; overflow: hidden;">
+            ${preheader}
+          </span>
+        `;
+        finalHtml = preheaderHtml + body;
+      }
+
       await sendNetcoreEmail({
         toEmail,
         subject,
-        htmlContent: body,
+        htmlContent: finalHtml,
       });
       return { success: true, message: 'Email sent successfully!' };
     } catch (error: any) {

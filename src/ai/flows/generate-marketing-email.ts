@@ -25,6 +25,7 @@ export type GenerateMarketingEmailInput = z.infer<typeof GenerateMarketingEmailI
 
 const GenerateMarketingEmailOutputSchema = z.object({
   emailSubject: z.string().describe('The subject line for the marketing email.'),
+  emailPreheader: z.string().describe('A short, catchy pre-header text that appears in the inbox preview after the subject line.'),
   emailBody: z.string().describe('The generated body of the marketing email, formatted in simple HTML with paragraphs and including personalization placeholders like {{firstName}}.'),
 });
 export type GenerateMarketingEmailOutput = z.infer<typeof GenerateMarketingEmailOutputSchema>;
@@ -39,13 +40,15 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateMarketingEmailOutputSchema},
   prompt: `You are an AI assistant specialized in crafting engaging marketing emails.
 
-  Based on the event details provided, generate a compelling email subject and a well-formatted HTML email body to attract the target audience.
+  Based on the event details provided, generate a compelling email subject, a concise pre-header, and a well-formatted HTML email body to attract the target audience.
   
   Instructions:
-  1.  **Email Body Format:** The email body MUST be in simple HTML format. Use <p> tags for paragraphs and <strong> tags for emphasis.
-  2.  **Personalization:** Include personalization placeholders where appropriate. Use Handlebars syntax, for example: 'Hi {{firstName}},'.
-  3.  **Tone and Content:** Maintain the specified tone and highlight the key benefits of attending the event.
-  4.  **Call to Action:** Ensure the call to action is clear and encourages the recipient to take the desired action.
+  1.  **Email Subject:** Make it concise and attention-grabbing.
+  2.  **Email Pre-header:** Create a short, catchy sentence that complements the subject and appears in the inbox preview.
+  3.  **Email Body Format:** The email body MUST be in simple HTML format. Use <p> tags for paragraphs and <strong> tags for emphasis.
+  4.  **Personalization:** Include personalization placeholders where appropriate. Use Handlebars syntax, for example: 'Hi {{firstName}},'.
+  5.  **Tone and Content:** Maintain the specified tone and highlight the key benefits of attending the event.
+  6.  **Call to Action:** Ensure the call to action is clear and encourages the recipient to take the desired action.
   
   Event Details:
   Event Name: {{{eventName}}}
@@ -55,9 +58,6 @@ const prompt = ai.definePrompt({
   Target Audience: {{{targetAudience}}}
   Call to Action: {{{callToAction}}}
   Tone: {{{tone}}}
-  
-  Compose an email subject that is concise and attention-grabbing.
-  Write the email body as a clean HTML string.
   `,
 });
 
