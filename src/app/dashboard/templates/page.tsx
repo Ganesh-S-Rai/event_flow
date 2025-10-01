@@ -1,5 +1,7 @@
 
-import { getTemplates, getEvents } from '@/lib/data';
+
+import { getEvents } from '@/lib/data';
+import { getTemplates } from '@/lib/templates';
 import Image from 'next/image';
 import {
   Card,
