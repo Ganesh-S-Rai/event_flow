@@ -1,6 +1,4 @@
 
-'use server';
-
 import type { Block } from './data';
 
 export type Template = {
