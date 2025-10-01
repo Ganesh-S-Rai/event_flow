@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useActionState, Fragment, useRef } from 'react';
+import { useState, useEffect, useActionState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -145,13 +145,11 @@ function EditImageDialog({ open, onOpenChange, onGenerate, currentImage }: { ope
 
 // --- Reusable Controls ---
 function ImageControls({
-  field,
   currentSrc,
   onImageUpload,
   onImageGenerate,
   onImageEdit,
 }: {
-  field: string;
   currentSrc: string;
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onImageGenerate: (url: string) => void;
@@ -284,7 +282,6 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
                         <div>
                             <Label>Background Image</Label>
                              <ImageControls
-                                field="backgroundImageSrc"
                                 currentSrc={block.content.backgroundImageSrc}
                                 onImageUpload={handleImageUpload("backgroundImageSrc")}
                                 onImageGenerate={handleImageAction("backgroundImageSrc")}
@@ -379,9 +376,8 @@ function BlockEditor({ block, onUpdate, onRemove, onMove }: { block: Block, onUp
             case 'image':
                 return (
                     <div>
-                        <Input value={block.content.src?.startsWith('data:') ? 'Uploaded Image' : block.content.src || ''} onChange={(e) => onUpdate(block.id, { ...block.content, src: e.target.value })} placeholder="Image URL or upload" />
+                        <Input value={block.content.src?.startsWith('data:') ? 'Uploaded Image' : block.content.src || ''} onChange={(e) => onUpdate(block.id, { ...block.content, src: e.target.value })} placeholder="Image URL or upload" readOnly={block.content.src?.startsWith('data:')} />
                         <ImageControls
-                            field="src"
                             currentSrc={block.content.src}
                             onImageUpload={handleImageUpload("src")}
                             onImageGenerate={handleImageAction("src")}
@@ -465,6 +461,13 @@ export function Editor({ event: initialEvent }: { event: Event }) {
   const [status, setStatus] = useState<Event['status']>(initialEvent.status || 'Draft');
   
   const [state, formAction] = useActionState(publishEventAction, { message: '' });
+
+  // Update ID for new events from templates
+  useEffect(() => {
+    if (initialEvent.id.startsWith('evt-from-')) {
+      setEvent(prev => ({...prev, id: `${initialEvent.id}-${Date.now()}`}));
+    }
+  }, [initialEvent.id]);
 
   // Update slug when event name changes
   useEffect(() => {

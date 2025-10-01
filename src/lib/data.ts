@@ -3,7 +3,7 @@
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, query, where, limit } from 'firebase/firestore';
 import { db } from './firebase'; // Make sure you have this file to initialize Firestore
 import { unstable_noStore as noStore } from 'next/cache';
-import { templates, type Template } from './templates';
+import { templates } from './templates';
 
 // --- Block Types for Landing Page Content ---
 export type Block = {
@@ -84,7 +84,7 @@ export const getEventById = async (id: string): Promise<Event | undefined> => {
             if (template) {
                 // Return an event object based on the template
                 return {
-                    id: `evt-from-${template.id}-${Date.now()}`, // Temporary ID for creation
+                    id: `evt-from-${template.id}`, // Use a predictable, non-dynamic ID
                     name: template.name,
                     description: template.description,
                     date: new Date().toISOString(),
