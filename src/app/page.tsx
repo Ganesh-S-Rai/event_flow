@@ -1,11 +1,13 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Zap } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getPlaceholderImages } from '@/lib/placeholder-images';
 
-export default function Home() {
-  const heroImage = PlaceHolderImages.find((img) => img.id === 'hero');
+export default async function Home() {
+  const placeholderImages = await getPlaceholderImages();
+  const heroImage = placeholderImages.find((img) => img.id === 'hero');
 
   return (
     <div className="flex flex-col min-h-screen">
