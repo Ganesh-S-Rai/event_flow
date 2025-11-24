@@ -1,14 +1,17 @@
 
-import { getEvents, getLeads } from '@/lib/data';
+import { getEvents, getLeads, getExpenses } from '@/lib/data';
 import { StatsCards } from './components/stats-cards';
 import { Overview } from './components/overview';
 import { RecentSignups } from './components/recent-signups';
 import { CalendarDateRangePicker } from './components/date-range-picker';
 import { CreateEvent } from './events/components/create-event';
+import { UpcomingEvent } from './components/upcoming-event';
+import { RoiCards } from './components/roi-cards';
 
 export default async function DashboardPage() {
   const events = await getEvents();
   const leads = await getLeads();
+  const expenses = await getExpenses();
 
   return (
     <div className="flex-1 space-y-4">
@@ -19,12 +22,19 @@ export default async function DashboardPage() {
           <CreateEvent />
         </div>
       </div>
-      <StatsCards events={events} leads={leads} />
+
+      {/* ROI & Budget Section */}
+      <RoiCards events={events} leads={leads} expenses={expenses} />
+
+      <UpcomingEvent events={events} />
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4">
+        <div className="col-span-4 lg:col-span-7 space-y-4">
           <Overview />
         </div>
-        <div className="col-span-4 lg:col-span-3">
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <div className="col-span-7">
           <RecentSignups leads={leads} />
         </div>
       </div>

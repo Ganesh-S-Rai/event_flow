@@ -10,45 +10,44 @@ export type Template = {
 };
 
 export const templates: Template[] = [
-    {
-      id: 'tpl-001',
-      name: 'Modern Conference',
-      description: 'A sleek, professional template for tech conferences and corporate events.',
-      imageUrl: 'https://picsum.photos/seed/tpl1/600/400',
-      content: [
-        { id: 'block-1', type: 'hero', content: { headline: 'InnovateX 2024', text: 'Join us for the most anticipated tech conference of the year. Discover the future of innovation.', buttonText: 'Register Now', backgroundImageSrc: 'https://picsum.photos/seed/event-hero/1200/800' } },
-        { id: 'block-2', type: 'heading', content: { text: 'About The Event', level: 'h2', alignment: 'center' } },
-        { id: 'block-3', type: 'text', content: { text: 'This is where your event description will go. It should be exciting and informative, telling people why they should attend. This template provides a clean and modern layout to showcase your event details effectively.', alignment: 'left' } },
-        { id: 'block-4', type: 'image', content: { src: 'https://picsum.photos/seed/img1/1200/500', alt: 'Conference stage' } },
-      ]
-    },
-    {
-      id: 'tpl-002',
-      name: 'Creative Workshop',
-      description: 'A vibrant and artistic template perfect for workshops and creative gatherings.',
-      imageUrl: 'https://picsum.photos/seed/tpl2/600/400',
-      content: [
-        { id: 'block-1', type: 'hero', content: { headline: 'Unlock Your Creativity', text: 'A hands-on workshop designed for artists, designers, and creators of all levels.', buttonText: 'Reserve Your Spot', backgroundImageSrc: 'https://picsum.photos/seed/workshop-hero/1200/800' } },
-        { id: 'block-2', type: 'heading', content: { text: 'What You Will Learn', level: 'h2', alignment: 'left' } },
-        { id: 'block-3', type: 'text', content: { text: 'This workshop covers a variety of techniques and skills. You will leave with a completed project and a new set of creative tools.', alignment: 'left' } },
-      ]
-    },
-    {
-      id: 'tpl-003',
-      name: 'Community Meetup',
-      description: 'A friendly and inviting template for local meetups and community-driven events.',
-      imageUrl: 'https://picsum.photos/seed/tpl3/600/400',
-      content: [
-        { id: 'block-1', type: 'heading', content: { text: 'Community Networking Night', level: 'h1', alignment: 'left' } },
-        { id: 'block-2', type: 'text', content: { text: 'Connect with local professionals and enthusiasts in a relaxed and friendly atmosphere.', alignment: 'left' } },
-        { id: 'block-3', type: 'button', content: { text: 'RSVP Now', alignment: 'left' } },
-        { id: 'block-4', 'type': 'image', content: { src: 'https://picsum.photos/seed/meetup-hero/1200/500', alt: 'People networking at a meetup' } },
-        { id: 'block-5', type: 'heading', content: { text: 'Event Details', level: 'h2', alignment: 'left' } },
-        { id: 'block-6', type: 'text', content: { text: 'Join us for an evening of networking, snacks, and great conversations. We look forward to seeing you there!', alignment: 'left' } },
-      ]
-    },
-  ];
+  {
+    id: 'tpl-001',
+    name: 'MarTech Mashup 2025',
+    description: 'The ultimate networking mixer for B2C marketing leaders. A vibrant, high-energy template designed for community building, knowledge sharing, and exploring the future of MarTech.',
+    imageUrl: '/martech_mashup_thumbnail.png',
+    content: [
+      { id: 'block-1', type: 'hero', content: { headline: 'MarTech Mashup: The Intelligent Shift', text: 'Join the most exclusive community of marketers for an evening of insights, networking, and cocktails. Discover how Gen-AI is reshaping customer engagement while connecting with industry peers.', buttonText: 'Request Invitation', backgroundImageSrc: '/martech_mashup_thumbnail.png' } },
+      { id: 'block-2', type: 'heading', content: { text: 'Why Attend?', level: 'h2', alignment: 'center' } },
+      { id: 'block-3', type: 'text', content: { text: 'Connect with top CMOs and digital leaders. Explore the "Agentic Marketing Stack" in a relaxed setting. No pitches, just pure value and relationships.', alignment: 'left' } },
+      { id: 'block-4', type: 'image', content: { src: '/networking_event_people.png', alt: 'MarTech Mashup Networking' } },
+    ]
+  },
+  {
+    id: 'tpl-002',
+    name: 'Ecommerce Summit',
+    description: 'A premier conference template for large-scale industry events. Perfect for showcasing thought leadership, keynote sessions, and digital transformation trends in retail.',
+    imageUrl: '/ecommerce_summit_thumbnail.png',
+    content: [
+      { id: 'block-1', type: 'hero', content: { headline: 'The Ecommerce Summit 2025', text: 'Unlocking the future of personalized shopping. Join 500+ retail innovators to discuss AI-driven discovery, visual search, and the next era of customer retention.', buttonText: 'Get Your Pass', backgroundImageSrc: '/ecommerce_summit_thumbnail.png' } },
+      { id: 'block-2', type: 'heading', content: { text: 'Keynote Speakers', level: 'h2', alignment: 'left' } },
+      { id: 'block-3', type: 'text', content: { text: 'Hear from the visionaries behind the world\'s fastest-growing D2C brands. Learn actionable strategies to boost LTV and reduce CAC in a competitive market.', alignment: 'left' } },
+      { id: 'block-4', type: 'image', content: { src: '/product_demo_dashboard.png', alt: 'Ecommerce Analytics' } },
+    ]
+  },
+  {
+    id: 'tpl-003',
+    name: 'Agentic Marketing Revolution',
+    description: 'A futuristic, tech-forward template for launching new AI innovations. Ideal for announcing autonomous marketing agents and next-gen automation tools.',
+    imageUrl: '/agentic_marketing_thumbnail.png',
+    content: [
+      { id: 'block-1', type: 'hero', content: { headline: 'Agentic Marketing: Beyond Automation', text: 'Welcome to the era of autonomous marketing. Witness the launch of Netcore\'s Agentic AI Stack—where AI doesn\'t just assist, it acts. Transform your marketing operations today.', buttonText: 'Watch the Reveal', backgroundImageSrc: '/agentic_marketing_thumbnail.png' } },
+      { id: 'block-2', type: 'heading', content: { text: 'The Shift to Autonomy', level: 'h2', alignment: 'left' } },
+      { id: 'block-3', type: 'text', content: { text: 'Move from campaign management to goal setting. Our AI agents analyze, decide, and execute complex multi-channel journeys in real-time, delivering hyper-personalization at scale.', alignment: 'left' } },
+      { id: 'block-4', 'type': 'image', content: { src: '/product_demo_dashboard.png', alt: 'Agentic AI Dashboard' } },
+    ]
+  },
+];
 
 export const getTemplates = async (): Promise<Template[]> => {
-    return Promise.resolve(templates);
+  return Promise.resolve(templates);
 };

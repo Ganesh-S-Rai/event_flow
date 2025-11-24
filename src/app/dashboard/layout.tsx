@@ -27,7 +27,7 @@ export default function DashboardLayout({
                 <Zap className="size-5 text-primary" />
               </Link>
             </Button>
-            <span className="truncate text-lg font-semibold">EventFlow</span>
+            <span className="truncate text-lg font-semibold">Netcore EventFlow</span>
           </div>
         </SidebarHeader>
         <SidebarContent>

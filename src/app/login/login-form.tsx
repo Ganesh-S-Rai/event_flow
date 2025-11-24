@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
+import { isUserWhitelisted } from '@/lib/whitelist';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -31,6 +32,10 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      if (!isUserWhitelisted(values.email)) {
+        throw new Error('This email is not authorized to access this application.');
+      }
+
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: 'Logged in successfully!',

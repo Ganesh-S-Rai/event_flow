@@ -15,6 +15,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Event } from '@/lib/data';
 import Link from 'next/link';
+import { deleteEventAction } from '../actions';
+import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 
 const statusVariantMap: Record<Event['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
   Active: 'default',
@@ -95,10 +98,24 @@ export const columns: ColumnDef<Event>[] = [
     },
   },
   {
+    accessorKey: 'analytics.views',
+    header: 'Views',
+    cell: ({ row }) => <div className="text-right">{row.original.analytics?.views || 0}</div>,
+  },
+  {
+    accessorKey: 'analytics.clicks',
+    header: 'Clicks',
+    cell: ({ row }) => <div className="text-right">{row.original.analytics?.clicks || 0}</div>,
+  },
+  {
     id: 'actions',
     cell: ({ row }) => {
       const event = row.original;
       const pageUrl = event.status === 'Active' && event.slug ? `/events/${event.slug}` : `/events/${event.id}`;
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [isPending, startTransition] = useTransition();
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const router = useRouter();
 
       return (
         <div className="text-right">
@@ -116,10 +133,26 @@ export const columns: ColumnDef<Event>[] = [
               </DropdownMenuItem>
               <DropdownMenuItem>View registrations</DropdownMenuItem>
               <DropdownMenuSeparator />
-               <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild>
                 <Link href={`/dashboard/editor/${event.id}`}>Edit</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/dashboard/events/${event.id}/check-in`}>Check-in Desk</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                disabled={isPending}
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete this event?')) {
+                    startTransition(async () => {
+                      await deleteEventAction(event.id);
+                      router.refresh();
+                    });
+                  }
+                }}
+              >
+                Delete
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { createEvent } from '@/lib/data';
+import { createEvent, deleteEvent } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -11,6 +11,7 @@ const CreateEventSchema = z.object({
   date: z.string().min(1, 'Event date is required.'),
   location: z.string().min(1, 'Event location is required.'),
   description: z.string().min(1, 'Event description is required.'),
+  budget: z.coerce.number().optional(),
 });
 
 type FormState = {
@@ -28,6 +29,7 @@ export async function createEventAction(
     date: formData.get('date'),
     location: formData.get('location'),
     description: formData.get('description'),
+    budget: formData.get('budget'),
   });
 
   if (!validatedFields.success) {
@@ -45,4 +47,26 @@ export async function createEventAction(
   } catch (error) {
     return { message: 'Error: Failed to create event.' };
   }
+}
+
+export async function deleteEventAction(id: string) {
+  try {
+    await deleteEvent(id);
+    revalidatePath('/dashboard/events');
+    return { message: 'Success: Event deleted.' };
+  } catch (error) {
+    return { message: 'Error: Failed to delete event.' };
+  }
+}
+
+export async function sendEmailAction(leadId: string) {
+  // Simulate email sending
+  console.log(`Sending confirmation email to lead ${leadId}`);
+
+  // Update status to Contacted
+  const { updateLeadStatus } = await import('@/lib/data');
+  await updateLeadStatus(leadId, 'Contacted');
+
+  revalidatePath('/dashboard/leads');
+  return { success: true, message: 'Email sent successfully.' };
 }

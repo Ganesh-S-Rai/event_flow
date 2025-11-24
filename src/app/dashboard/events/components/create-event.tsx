@@ -22,13 +22,13 @@ import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending}>
-            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save changes
-        </Button>
-    );
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="h-11 px-8 bg-primary hover:bg-primary/90">
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Create Event
+    </Button>
+  );
 }
 
 export function CreateEvent() {
@@ -42,18 +42,18 @@ export function CreateEvent() {
 
   useEffect(() => {
     if (state.message.startsWith('Success')) {
-        toast({
-            title: 'Event Created',
-            description: 'Your new event has been successfully created.',
-        });
-        setOpen(false);
-        router.push('/dashboard/events');
+      toast({
+        title: 'Event Created',
+        description: 'Your new event has been successfully created.',
+      });
+      setOpen(false);
+      router.push('/dashboard/events');
     } else if (state.message.startsWith('Error')) {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: state.issues?.[0] || 'An unexpected error occurred.',
-        });
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: state.issues?.[0] || 'An unexpected error occurred.',
+      });
     }
   }, [state, toast, router]);
 
@@ -61,60 +61,90 @@ export function CreateEvent() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Create Event</Button>
+        <Button size="lg" className="bg-primary hover:bg-primary/90 text-white shadow-md">
+          + Create New Event
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create New Event</DialogTitle>
-          <DialogDescription>
-            Fill in the details below to create a new event. Click save when
-            you're done.
+      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0">
+        <DialogHeader className="p-6 bg-muted/30 border-b">
+          <DialogTitle className="text-2xl font-bold text-primary">Create New Event</DialogTitle>
+          <DialogDescription className="text-base">
+            Launch your next big event. Fill in the details below.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input id="name" name="name" className="col-span-3" required />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right">
-                Date
+        <form action={formAction} className="p-6 space-y-6">
+          <div className="grid gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="name" className="text-sm font-semibold">
+                Event Name
               </Label>
               <Input
-                id="date"
-                name="date"
-                type="date"
-                className="col-span-3"
+                id="name"
+                name="name"
+                placeholder="e.g. Annual Tech Conference 2024"
+                className="h-11"
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="location" className="text-right">
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="date" className="text-sm font-semibold">
+                  Date
+                </Label>
+                <Input
+                  id="date"
+                  name="date"
+                  type="date"
+                  className="h-11"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="budget" className="text-sm font-semibold">
+                  Budget (₹)
+                </Label>
+                <Input
+                  id="budget"
+                  name="budget"
+                  type="number"
+                  placeholder="500000"
+                  className="h-11"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="location" className="text-sm font-semibold">
                 Location
               </Label>
               <Input
                 id="location"
                 name="location"
-                className="col-span-3"
+                placeholder="e.g. Grand Hyatt, Mumbai or Online"
+                className="h-11"
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
+
+            <div className="grid gap-2">
+              <Label htmlFor="description" className="text-sm font-semibold">
                 Description
               </Label>
               <Textarea
                 id="description"
                 name="description"
-                className="col-span-3"
+                placeholder="Briefly describe what this event is about..."
+                className="min-h-[100px] resize-none"
                 required
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-11">
+              Cancel
+            </Button>
             <SubmitButton />
           </DialogFooter>
         </form>

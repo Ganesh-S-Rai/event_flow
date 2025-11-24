@@ -15,21 +15,24 @@ import { registerLead, type RegisterLeadOutput } from '@/ai/flows/register-lead-
 import { useToast } from '@/hooks/use-toast';
 import type { Event, Block } from '@/lib/data';
 import { cn } from '@/lib/utils';
+import { incrementView } from '../actions';
+import { useEffect } from 'react';
+import { RenderBlock } from '@/components/blocks/render-block';
 
 type FormField = NonNullable<Event['formFields']>[0];
 
-function RegistrationForm({ 
-  open, 
-  onOpenChange, 
-  fields, 
-  eventId, 
-  eventName 
-}: { 
-  open: boolean, 
-  onOpenChange: (open: boolean) => void, 
-  fields: FormField[],
-  eventId: string,
-  eventName: string,
+function RegistrationForm({
+    open,
+    onOpenChange,
+    fields,
+    eventId,
+    eventName
+}: {
+    open: boolean,
+    onOpenChange: (open: boolean) => void,
+    fields: FormField[],
+    eventId: string,
+    eventName: string,
 }) {
     const [submissionState, setSubmissionState] = useState<'form' | 'submitting' | 'success'>('form');
     const [result, setResult] = useState<RegisterLeadOutput | null>(null);
@@ -41,8 +44,8 @@ function RegistrationForm({
         const formData = new FormData(event.currentTarget);
         const details: { [key: string]: string } = {};
         fields.forEach(field => {
-          const key = field.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
-          details[key] = formData.get(field.id) as string;
+            const key = field.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
+            details[key] = formData.get(field.id) as string;
         });
 
         try {
@@ -71,7 +74,7 @@ function RegistrationForm({
             setResult(null);
         }, 300);
     }
-    
+
     return (
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-md">
@@ -119,7 +122,7 @@ function RegistrationForm({
                         </form>
                     </>
                 )}
-                 {submissionState === 'submitting' && (
+                {submissionState === 'submitting' && (
                     <div className="flex flex-col items-center justify-center h-48 gap-4">
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
                         <p className="text-muted-foreground">Submitting your registration...</p>
@@ -127,7 +130,7 @@ function RegistrationForm({
                 )}
                 {submissionState === 'success' && result?.qrCode && (
                     <div className="text-center py-8">
-                         <DialogHeader className="mb-6">
+                        <DialogHeader className="mb-6">
                             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                             <DialogTitle className="text-2xl">Registration Successful!</DialogTitle>
                             <DialogDescription>
@@ -150,147 +153,70 @@ function RegistrationForm({
     );
 }
 
-function RenderBlock({ block, onButtonClick }: { block: Block; onButtonClick?: () => void }) {
-  const { type, content } = block;
-  const alignment = content.alignment || 'left';
-  const alignmentClass = {
-    left: 'text-left',
-    center: 'text-center',
-    right: 'text-right',
-  }[alignment] || 'text-left';
-
-  switch (type) {
-    case 'hero':
-        return (
-            <section className="relative w-full h-[60vh] flex items-center justify-center text-center text-white">
-                {content.backgroundImageSrc && <Image src={content.backgroundImageSrc} alt={content.headline || 'Hero background'} fill className="object-cover -z-10 brightness-50" />}
-                <div className="space-y-4 p-4">
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">{content.headline}</h1>
-                    <p className="text-lg md:text-xl/relaxed max-w-2xl mx-auto">{content.text}</p>
-                    {content.buttonText && (
-                        <Button 
-                            size={content.buttonSize || 'lg'}
-                            variant={content.buttonVariant || 'default'}
-                            onClick={onButtonClick}
-                        >
-                            {content.buttonText}
-                        </Button>
-                    )}
-                </div>
-            </section>
-        )
-    case 'heading':
-      const Tag = content.level || 'h2';
-      const sizeClass = {
-        h1: 'text-4xl md:text-6xl font-bold tracking-tighter',
-        h2: 'text-3xl font-bold tracking-tighter sm:text-4xl',
-        h3: 'text-2xl font-bold tracking-tighter',
-      }[Tag] || 'text-2xl font-bold';
-      return <Tag className={`${sizeClass} ${alignmentClass}`}>{content.text}</Tag>;
-
-    case 'text':
-      return <p className={`text-muted-foreground md:text-xl/relaxed whitespace-pre-line ${alignmentClass}`}>{content.text}</p>;
-
-    case 'image':
-      return (
-        <div className="relative aspect-video w-full my-4 rounded-lg overflow-hidden">
-          {content.src && <Image src={content.src} alt={content.alt || 'Event image'} fill className="object-cover" />}
-        </div>
-      );
-    
-    case 'button':
-        const button = (
-            <Button 
-              size={(content.size || 'default') as ButtonProps['size']} 
-              variant={(content.variant || 'default') as ButtonProps['variant']}
-              className="mt-4" 
-              onClick={onButtonClick}
-            >
-                {content.text}
-            </Button>
-        );
-
-        return (
-            <div className={cn({
-                'text-left': content.alignment === 'left',
-                'text-center': content.alignment === 'center',
-                'text-right': content.alignment === 'right',
-            })}>
-                {content.href ? (
-                    <Link href={content.href} target="_blank" rel="noopener noreferrer">
-                        {button}
-                    </Link>
-                ) : (
-                    button
-                )}
-            </div>
-        );
-
-    default:
-      return null;
-  }
-}
-
 
 export function EventPageClient({ event }: { event: Event }) {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const { formFields = [], content = [] } = event;
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const { formFields = [], content = [] } = event;
 
-  const handleOpenForm = () => {
-    if (formFields.length > 0) {
-      setIsFormOpen(true);
-    }
-  };
+    const handleOpenForm = () => {
+        if (formFields.length > 0) {
+            setIsFormOpen(true);
+        }
+    };
 
-  const hasHeroBlock = content.some(block => block.type === 'hero');
+    const hasHeroBlock = content.some(block => block.type === 'hero');
 
-  return (
-    <div className="bg-background text-foreground">
-       {formFields.length > 0 && (
-          <RegistrationForm 
-            open={isFormOpen} 
-            onOpenChange={setIsFormOpen} 
-            fields={formFields} 
-            eventId={event.id} 
-            eventName={event.name}
-          />
-       )}
-      <header className={`px-4 lg:px-6 h-14 flex items-center z-20 ${hasHeroBlock ? 'absolute top-0 left-0 right-0 bg-transparent text-white' : 'sticky top-0 bg-background/80 backdrop-blur-sm border-b'}`}>
-        <Link href="#" className="flex items-center justify-center font-bold" prefetch={false}>
-          {event.name}
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-            <div className="flex items-center gap-2">
-                <Calendar className="size-4" />
-                <span className="text-sm">{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <MapPin className="size-4" />
-                <span className="text-sm">{event.location}</span>
-            </div>
-        </nav>
-      </header>
-      <main>
-        {/* If there's no hero block, add default padding */}
-        <div className={hasHeroBlock ? '' : 'py-12 md:py-24'}>
-            <div className="container px-4 md:px-6 space-y-6">
-                {content.map(block => (
-                    <RenderBlock key={block.id} block={block} onButtonClick={handleOpenForm} />
-                ))}
-            </div>
+    useEffect(() => {
+        incrementView(event.id);
+    }, [event.id]);
+
+    return (
+        <div className="bg-background text-foreground">
+            {formFields.length > 0 && (
+                <RegistrationForm
+                    open={isFormOpen}
+                    onOpenChange={setIsFormOpen}
+                    fields={formFields}
+                    eventId={event.id}
+                    eventName={event.name}
+                />
+            )}
+            <header className={`px-4 lg:px-6 h-14 flex items-center z-20 ${hasHeroBlock ? 'absolute top-0 left-0 right-0 bg-transparent text-white' : 'sticky top-0 bg-background/80 backdrop-blur-sm border-b'}`}>
+                <Link href="#" className="flex items-center justify-center font-bold" prefetch={false}>
+                    {event.name}
+                </Link>
+                <nav className="ml-auto flex gap-4 sm:gap-6">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="size-4" />
+                        <span className="text-sm">{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <MapPin className="size-4" />
+                        <span className="text-sm">{event.location}</span>
+                    </div>
+                </nav>
+            </header>
+            <main>
+                {/* If there's no hero block, add default padding */}
+                <div className={hasHeroBlock ? '' : 'py-12 md:py-24'}>
+                    <div className="container px-4 md:px-6 space-y-6">
+                        {content.map(block => (
+                            <RenderBlock key={block.id} block={block} onButtonClick={handleOpenForm} eventId={event.id} />
+                        ))}
+                    </div>
+                </div>
+            </main>
+            <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+                <p className="text-xs text-muted-foreground">&copy; 2024 {event.name}. All rights reserved.</p>
+                <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+                    <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+                        Terms of Service
+                    </Link>
+                    <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+                        Privacy
+                    </Link>
+                </nav>
+            </footer>
         </div>
-      </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 {event.name}. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Terms of Service
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Privacy
-          </Link>
-        </nav>
-      </footer>
-    </div>
-  );
+    );
 }
