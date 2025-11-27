@@ -6,9 +6,10 @@ import { notFound } from 'next/navigation';
 export default async function EditorPage({
   params,
 }: {
-  params: { templateId: string };
+  params: Promise<{ templateId: string }>;
 }) {
-  const event = await getEventById(params.templateId);
+  const { templateId } = await params;
+  const event = await getEventById(templateId);
 
   if (!event) {
     notFound();

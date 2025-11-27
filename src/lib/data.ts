@@ -9,6 +9,17 @@ export type Block = {
   id: string;
   type: 'heading' | 'text' | 'image' | 'speaker' | 'agenda' | 'faq' | 'button' | 'hero';
   content: any; // This will vary based on the block type
+  styles?: {
+    backgroundColor?: string;
+    textColor?: string;
+    fontSize?: string;
+    padding?: string;
+    textAlign?: 'left' | 'center' | 'right';
+    // Hero specific styles
+    headlineStyles?: { fontSize?: string; color?: string; fontWeight?: string };
+    subtextStyles?: { fontSize?: string; color?: string; fontWeight?: string };
+    buttonStyles?: { fontSize?: string; color?: string; backgroundColor?: string };
+  };
 };
 
 export interface SpeakerBlockContent {
@@ -56,6 +67,11 @@ export type Event = {
     formSubmissions: number;
   };
   budget?: number; // Total budget allocated for the event
+  autoReplyConfig?: {
+    enabled: boolean;
+    subject: string;
+    body: string;
+  };
 };
 
 export type Lead = {

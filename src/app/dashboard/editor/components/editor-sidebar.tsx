@@ -9,25 +9,30 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Type, Image as ImageIcon, MessageSquare, Star, Pilcrow,
     AlignLeft, AlignCenter, AlignRight, Trash2, ArrowUp, ArrowDown,
-    Heading1, Heading2, Heading3, Users, Calendar, HelpCircle, Plus, X, Sparkles
+    Heading1, Heading2, Heading3, Users, Calendar, HelpCircle, Plus, X, Sparkles,
+    Palette, Type as TypeIcon, Layout
 } from 'lucide-react';
 import { generateBlockContent } from '@/ai/flows/generate-block-content';
 import { generateImage } from '@/ai/flows/generate-image';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import type { Block } from '@/lib/data';
+import type { Block, Event } from '@/lib/data';
+import { FormBuilder } from './form-builder';
 
 interface EditorSidebarProps {
     selectedBlock: Block | null;
-    onUpdateBlock: (id: string, content: any) => void;
+    onUpdateBlock: (id: string, content: any, styles?: any) => void;
     onAddBlock: (type: Block['type']) => void;
     onRemoveBlock: (id: string) => void;
     onMoveBlock: (id: string, direction: 'up' | 'down') => void;
     eventName: string;
     eventDescription: string;
+    formFields?: Event['formFields'];
+    autoReplyConfig?: Event['autoReplyConfig'];
+    onUpdateEvent?: (fields: NonNullable<Event['formFields']>, config: Event['autoReplyConfig']) => void;
 }
 
-export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemoveBlock, onMoveBlock, eventName, eventDescription }: EditorSidebarProps) {
+export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemoveBlock, onMoveBlock, eventName, eventDescription, formFields, autoReplyConfig, onUpdateEvent }: EditorSidebarProps) {
     const { toast } = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -154,8 +159,116 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                             <Input value={content.buttonText || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content, buttonText: e.target.value })} />
                         </div>
                         <div className="space-y-2">
+                            <Label>Action</Label>
+                            <Select value={content.action || 'link'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content, action: val })}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="link">Open Link</SelectItem>
+                                    <SelectItem value="form">Open Registration Form</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {content.action === 'form' ? (
+                            <div className="space-y-2">
+                                <Label>Registration Form</Label>
+                                {onUpdateEvent && (
+                                    <FormBuilder
+                                        formFields={formFields || []}
+                                        autoReplyConfig={autoReplyConfig}
+                                        onUpdate={onUpdateEvent}
+                                    />
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label>Button URL (Optional)</Label>
+                                <Input value={content.href || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content, href: e.target.value })} placeholder="https://..." />
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
                             <Label>Background Image URL</Label>
                             <Input value={content.backgroundImageSrc || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content, backgroundImageSrc: e.target.value })} />
+                        </div>
+
+                        <Separator className="my-4" />
+                        <h4 className="font-medium text-sm">Headline Styles</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <Label className="text-xs">Font Size</Label>
+                                <Select value={selectedBlock.styles?.headlineStyles?.fontSize || '4xl'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, headlineStyles: { ...selectedBlock.styles?.headlineStyles, fontSize: val } })}>
+                                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="3xl">Large</SelectItem>
+                                        <SelectItem value="4xl">Extra Large</SelectItem>
+                                        <SelectItem value="5xl">2X Large</SelectItem>
+                                        <SelectItem value="6xl">3X Large</SelectItem>
+                                        <SelectItem value="7xl">Massive</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Color</Label>
+                                <div className="flex gap-1">
+                                    <Input type="color" value={selectedBlock.styles?.headlineStyles?.color || '#ffffff'} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, headlineStyles: { ...selectedBlock.styles?.headlineStyles, color: e.target.value } })} className="w-8 h-8 p-0 border-0" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <Separator className="my-4" />
+                        <h4 className="font-medium text-sm">Subtext Styles</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <Label className="text-xs">Font Size</Label>
+                                <Select value={selectedBlock.styles?.subtextStyles?.fontSize || 'xl'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, subtextStyles: { ...selectedBlock.styles?.subtextStyles, fontSize: val } })}>
+                                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="base">Medium</SelectItem>
+                                        <SelectItem value="lg">Large</SelectItem>
+                                        <SelectItem value="xl">Extra Large</SelectItem>
+                                        <SelectItem value="2xl">2X Large</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Color</Label>
+                                <div className="flex gap-1">
+                                    <Input type="color" value={selectedBlock.styles?.subtextStyles?.color || '#ffffff'} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, subtextStyles: { ...selectedBlock.styles?.subtextStyles, color: e.target.value } })} className="w-8 h-8 p-0 border-0" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <Separator className="my-4" />
+                        <h4 className="font-medium text-sm">Button Styles</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <Label className="text-xs">Font Size</Label>
+                                <Select value={selectedBlock.styles?.buttonStyles?.fontSize || 'lg'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, fontSize: val } })}>
+                                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="sm">Small</SelectItem>
+                                        <SelectItem value="default">Medium</SelectItem>
+                                        <SelectItem value="lg">Large</SelectItem>
+                                        <SelectItem value="xl">Extra Large</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Text Color</Label>
+                                <div className="flex gap-1">
+                                    <Input type="color" value={selectedBlock.styles?.buttonStyles?.color || '#ffffff'} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, color: e.target.value } })} className="w-8 h-8 p-0 border-0" />
+                                </div>
+                            </div>
+                            <div className="space-y-1 col-span-2">
+                                <Label className="text-xs">Background Color</Label>
+                                <div className="flex gap-2">
+                                    <Input type="color" value={selectedBlock.styles?.buttonStyles?.backgroundColor || '#000000'} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, backgroundColor: e.target.value } })} className="w-8 h-8 p-0 border-0" />
+                                    <Input value={selectedBlock.styles?.buttonStyles?.backgroundColor || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, backgroundColor: e.target.value } })} placeholder="#000000" className="h-8 text-xs flex-1" />
+                                </div>
+                            </div>
                         </div>
                     </>
                 )}
@@ -235,10 +348,38 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                             <Label>Text</Label>
                             <Input value={content.text || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content, text: e.target.value })} />
                         </div>
+
                         <div className="space-y-2">
-                            <Label>URL (Optional)</Label>
-                            <Input value={content.href || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content, href: e.target.value })} placeholder="https://..." />
+                            <Label>Action</Label>
+                            <Select value={content.action || 'link'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content, action: val })}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="link">Open Link</SelectItem>
+                                    <SelectItem value="form">Open Registration Form</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
+
+                        {content.action === 'link' || !content.action ? (
+                            <div className="space-y-2">
+                                <Label>URL (Optional)</Label>
+                                <Input value={content.href || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content, href: e.target.value })} placeholder="https://..." />
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label>Registration Form</Label>
+                                {onUpdateEvent && (
+                                    <FormBuilder
+                                        formFields={formFields || []}
+                                        autoReplyConfig={autoReplyConfig}
+                                        onUpdate={onUpdateEvent}
+                                    />
+                                )}
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <Label>Variant</Label>
                             <Select value={content.variant || 'default'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content, variant: val })}>
@@ -395,6 +536,81 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                         </div>
                     </div>
                 )}
+
+                <Separator className="my-4" />
+
+                <div className="space-y-4">
+                    <h4 className="font-medium flex items-center gap-2">
+                        <Palette className="h-4 w-4" /> Block Styles
+                    </h4>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label className="text-xs">Background</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="color"
+                                    value={selectedBlock.styles?.backgroundColor || '#ffffff'}
+                                    onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, backgroundColor: e.target.value })}
+                                    className="w-8 h-8 p-0 border-0"
+                                />
+                                <Input
+                                    value={selectedBlock.styles?.backgroundColor || ''}
+                                    onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, backgroundColor: e.target.value })}
+                                    placeholder="#ffffff"
+                                    className="h-8 text-xs"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-xs">Text Color</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="color"
+                                    value={selectedBlock.styles?.textColor || '#000000'}
+                                    onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, textColor: e.target.value })}
+                                    className="w-8 h-8 p-0 border-0"
+                                />
+                                <Input
+                                    value={selectedBlock.styles?.textColor || ''}
+                                    onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, textColor: e.target.value })}
+                                    placeholder="#000000"
+                                    className="h-8 text-xs"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="text-xs flex items-center gap-1"><TypeIcon className="h-3 w-3" /> Font Size</Label>
+                        <Select value={selectedBlock.styles?.fontSize || 'base'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, fontSize: val })}>
+                            <SelectTrigger className="h-8">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="sm">Small</SelectItem>
+                                <SelectItem value="base">Medium</SelectItem>
+                                <SelectItem value="lg">Large</SelectItem>
+                                <SelectItem value="xl">Extra Large</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="text-xs flex items-center gap-1"><Layout className="h-3 w-3" /> Padding</Label>
+                        <Select value={selectedBlock.styles?.padding || 'medium'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, padding: val })}>
+                            <SelectTrigger className="h-8">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="small">Small</SelectItem>
+                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="large">Large</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
             </ScrollArea>
         </div>
     );

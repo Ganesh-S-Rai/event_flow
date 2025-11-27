@@ -48,33 +48,129 @@ export function RenderBlock({ block, onButtonClick, eventId, isEditable = false,
     };
 
     // Helper to wrap content in a container if it's not a full-width block like Hero
-    const Container = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-        <div className={cn("container px-4 md:px-6 py-6 mx-auto max-w-4xl", className)}>
-            {children}
-        </div>
-    );
+    const Container = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+        const styles = block.styles || {};
+        const style: React.CSSProperties = {
+            backgroundColor: styles.backgroundColor,
+            color: styles.textColor,
+            paddingTop: styles.padding === 'none' ? '0' : styles.padding === 'small' ? '1rem' : styles.padding === 'large' ? '4rem' : '2rem',
+            paddingBottom: styles.padding === 'none' ? '0' : styles.padding === 'small' ? '1rem' : styles.padding === 'large' ? '4rem' : '2rem',
+        };
+
+        const fontSizeClass = {
+            sm: 'text-sm',
+            base: 'text-base',
+            lg: 'text-lg',
+            xl: 'text-xl',
+        }[styles.fontSize as string] || '';
+
+        return (
+            <div style={style} className={cn("w-full", className)}>
+                <div className={cn("container px-4 md:px-6 mx-auto max-w-4xl", fontSizeClass)}>
+                    {children}
+                </div>
+            </div>
+        );
+    };
 
     switch (type) {
         case 'hero':
+            const heroStyles = block.styles || {};
+            const headlineStyle = heroStyles.headlineStyles || {};
+            const subtextStyle = heroStyles.subtextStyles || {};
+            const buttonStyle = heroStyles.buttonStyles || {};
+
+            const heroPaddingClass = heroStyles.padding === 'none' ? 'py-0' : heroStyles.padding === 'small' ? 'py-12' : heroStyles.padding === 'large' ? 'py-32' : 'py-24';
+
             return (
-                <section {...commonProps} className={cn("relative w-full h-[60vh] min-h-[400px] flex items-center justify-center text-center text-white overflow-hidden", commonProps.className)}>
+                <section
+                    {...commonProps}
+                    style={{
+                        backgroundColor: heroStyles.backgroundColor,
+                        color: heroStyles.textColor
+                    }}
+                    className={cn("relative w-full min-h-[400px] flex items-center justify-center text-center text-white overflow-hidden", heroPaddingClass, commonProps.className)}
+                >
                     {content.backgroundImageSrc ? (
-                        <Image src={content.backgroundImageSrc} alt={content.headline || 'Hero background'} fill className="object-cover -z-10 brightness-[0.4]" priority />
+                        <Image
+                            src={content.backgroundImageSrc}
+                            alt={content.headline || 'Hero background'}
+                            fill
+                            className="object-cover z-0 brightness-[0.4]"
+                            priority
+                            unoptimized // Add unoptimized to prevent issues with external images if domain not configured
+                        />
                     ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-purple-900/80 -z-10" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-purple-900/80 z-0" />
                     )}
                     <div className="space-y-6 p-4 max-w-3xl relative z-10">
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter drop-shadow-lg">{content.headline}</h1>
-                        <p className="text-lg md:text-xl/relaxed text-white/90 drop-shadow-md">{content.text}</p>
+                        <h1
+                            className={cn("font-bold tracking-tighter drop-shadow-lg", {
+                                'text-3xl md:text-4xl': headlineStyle.fontSize === '3xl',
+                                'text-4xl md:text-6xl lg:text-7xl': !headlineStyle.fontSize || headlineStyle.fontSize === '4xl' || headlineStyle.fontSize === '5xl', // Default range
+                                'text-6xl md:text-8xl': headlineStyle.fontSize === '6xl' || headlineStyle.fontSize === '7xl',
+                            })}
+                            style={{
+                                color: headlineStyle.color,
+                                fontSize: headlineStyle.fontSize && !['3xl', '4xl', '5xl', '6xl', '7xl'].includes(headlineStyle.fontSize) ? headlineStyle.fontSize : undefined
+                            }}
+                        >
+                            {content.headline}
+                        </h1>
+                        <p
+                            className={cn("text-white/90 drop-shadow-md", {
+                                'text-base': subtextStyle.fontSize === 'base',
+                                'text-lg md:text-xl/relaxed': !subtextStyle.fontSize || subtextStyle.fontSize === 'lg' || subtextStyle.fontSize === 'xl',
+                                'text-2xl': subtextStyle.fontSize === '2xl',
+                            })}
+                            style={{
+                                color: subtextStyle.color,
+                                fontSize: subtextStyle.fontSize && !['base', 'lg', 'xl', '2xl'].includes(subtextStyle.fontSize) ? subtextStyle.fontSize : undefined
+                            }}
+                        >
+                            {content.text}
+                        </p>
                         {content.buttonText && (
-                            <Button
-                                size={content.buttonSize || 'lg'}
-                                variant={content.buttonVariant || 'default'}
-                                onClick={handleButtonClick}
-                                className="pointer-events-auto text-lg px-8 py-6 shadow-xl hover:scale-105 transition-transform"
-                            >
-                                {content.buttonText}
-                            </Button>
+                            content.action === 'form' ? (
+                                <Button
+                                    size={(content.buttonSize || 'lg') as ButtonProps['size']}
+                                    variant={(content.buttonVariant || 'default') as ButtonProps['variant']}
+                                    onClick={handleButtonClick}
+                                    className={cn("pointer-events-auto shadow-xl hover:scale-105 transition-transform", {
+                                        'text-sm px-4 py-2': buttonStyle.fontSize === 'sm',
+                                        'text-base px-6 py-3': buttonStyle.fontSize === 'default',
+                                        'text-lg px-8 py-6': !buttonStyle.fontSize || buttonStyle.fontSize === 'lg',
+                                        'text-xl px-10 py-8': buttonStyle.fontSize === 'xl',
+                                    })}
+                                    style={{
+                                        color: buttonStyle.color,
+                                        backgroundColor: buttonStyle.backgroundColor,
+                                        fontSize: buttonStyle.fontSize && !['sm', 'default', 'lg', 'xl'].includes(buttonStyle.fontSize) ? buttonStyle.fontSize : undefined
+                                    }}
+                                >
+                                    {content.buttonText}
+                                </Button>
+                            ) : (
+                                <Link href={content.href || '#'} target={isEditable ? undefined : "_blank"} onClick={isEditable ? (e) => e.preventDefault() : undefined}>
+                                    <Button
+                                        size={(content.buttonSize || 'lg') as ButtonProps['size']}
+                                        variant={(content.buttonVariant || 'default') as ButtonProps['variant']}
+                                        className={cn("pointer-events-auto shadow-xl hover:scale-105 transition-transform", {
+                                            'text-sm px-4 py-2': buttonStyle.fontSize === 'sm',
+                                            'text-base px-6 py-3': buttonStyle.fontSize === 'default',
+                                            'text-lg px-8 py-6': !buttonStyle.fontSize || buttonStyle.fontSize === 'lg',
+                                            'text-xl px-10 py-8': buttonStyle.fontSize === 'xl',
+                                        })}
+                                        style={{
+                                            color: buttonStyle.color,
+                                            backgroundColor: buttonStyle.backgroundColor,
+                                            fontSize: buttonStyle.fontSize && !['sm', 'default', 'lg', 'xl'].includes(buttonStyle.fontSize) ? buttonStyle.fontSize : undefined
+                                        }}
+                                    >
+                                        {content.buttonText}
+                                    </Button>
+                                </Link>
+                            )
                         )}
                     </div>
                 </section>

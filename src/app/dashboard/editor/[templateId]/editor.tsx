@@ -93,10 +93,10 @@ export function Editor({ event: initialEvent }: { event: Event }) {
     setSelectedBlockId(newBlock.id); // Select the new block
   };
 
-  const handleUpdateBlock = (id: string, newContent: any) => {
+  const handleUpdateBlock = (id: string, newContent: any, newStyles?: any) => {
     setEvent(prev => ({
       ...prev,
-      content: prev.content?.map(b => b.id === id ? { ...b, content: newContent } : b)
+      content: prev.content?.map(b => b.id === id ? { ...b, content: newContent, styles: newStyles !== undefined ? newStyles : b.styles } : b)
     }));
   };
 
@@ -221,6 +221,9 @@ export function Editor({ event: initialEvent }: { event: Event }) {
             onMoveBlock={handleMoveBlock}
             eventName={event.name}
             eventDescription={event.description}
+            formFields={event.formFields}
+            autoReplyConfig={event.autoReplyConfig}
+            onUpdateEvent={(fields, config) => setEvent(prev => ({ ...prev, formFields: fields, autoReplyConfig: config }))}
           />
         </div>
       </div>

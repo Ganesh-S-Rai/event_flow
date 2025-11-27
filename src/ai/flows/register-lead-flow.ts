@@ -49,9 +49,8 @@ const registerLeadFlow = ai.defineFlow(
   async (input) => {
     const { eventId, eventName, registrationDetails } = input;
     const userEmail = registrationDetails.work_email || '';
-    const userName = `${registrationDetails.first_name || ''} ${
-      registrationDetails.last_name || ''
-    }`.trim();
+    const userName = `${registrationDetails.first_name || ''} ${registrationDetails.last_name || ''
+      }`.trim();
 
     // 1. Create a new lead document in Firestore
     const leadData = {
@@ -69,16 +68,15 @@ const registerLeadFlow = ai.defineFlow(
 
     // 2. Generate a QR code containing the leadId
     const qrCodeDataUri = await QRCode.toDataURL(leadId, {
-        errorCorrectionLevel: 'H',
-        type: 'image/png',
-        quality: 0.92,
-        margin: 1,
+      errorCorrectionLevel: 'H',
+      type: 'image/png',
+      margin: 1,
     });
 
     // 3. Send a confirmation email with the QR code
     if (userEmail) {
-        const emailSubject = `Confirmation for ${eventName}`;
-        const emailBody = `
+      let emailSubject = `Confirmation for ${eventName}`;
+      let emailBody = `
             <h1>Registration Confirmed!</h1>
             <p>Hi ${userName || 'there'},</p>
             <p>Thank you for registering for <strong>${eventName}</strong>. We're excited to see you there!</p>
@@ -90,12 +88,44 @@ const registerLeadFlow = ai.defineFlow(
             <p><em>The EventFlow Team</em></p>
         `;
 
-        // We can call the other flow directly. No need to await if we don't need the result here.
-        sendMarketingEmail({
-            toEmail: userEmail,
-            subject: emailSubject,
-            body: emailBody,
-        }).catch(console.error); // Log error if email sending fails, but don't block the response
+      try {
+        // Fetch event to check for custom auto-reply settings
+        const { getEventById } = await import('@/lib/data');
+        const event = await getEventById(eventId);
+
+        if (event?.autoReplyConfig?.enabled) {
+          emailSubject = event.autoReplyConfig.subject || emailSubject;
+
+          // Simple template replacement
+          let customBody = event.autoReplyConfig.body || '';
+          customBody = customBody.replace(/{{name}}/g, userName || 'there');
+          customBody = customBody.replace(/{{eventName}}/g, eventName);
+
+          // Append QR code if not present (or just always append it for now to be safe)
+          // Ideally we'd let them place it with {{qrCode}}, but for now let's just append it if they didn't include it.
+          if (!customBody.includes('{{qrCode}}')) {
+            customBody += `
+                        <br>
+                        <img src="${qrCodeDataUri}" alt="Your Registration QR Code" />
+                        <br>
+                    `;
+          } else {
+            customBody = customBody.replace(/{{qrCode}}/g, `<img src="${qrCodeDataUri}" alt="Your Registration QR Code" />`);
+          }
+
+          emailBody = customBody;
+        }
+      } catch (error) {
+        console.error("Error fetching event for auto-reply config:", error);
+        // Fallback to default email is already set
+      }
+
+      // We can call the other flow directly. No need to await if we don't need the result here.
+      sendMarketingEmail({
+        toEmail: userEmail,
+        subject: emailSubject,
+        body: emailBody,
+      }).catch(console.error); // Log error if email sending fails, but don't block the response
     }
 
 

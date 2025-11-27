@@ -6,10 +6,11 @@ import { EventPageClient } from '../components/event-page-client';
 export default async function EventLandingPage({
   params,
 }: {
-  params: { eventId: string };
+  params: Promise<{ eventId: string }>;
 }) {
+  const { eventId } = await params;
   // The event could be looked up by slug or ID
-  const event = await getEventBySlug(params.eventId) || await getEventById(params.eventId);
+  const event = await getEventBySlug(eventId) || await getEventById(eventId);
 
   if (!event || event.status === 'Draft') {
     notFound();
