@@ -40,7 +40,17 @@ export const columns: ColumnDef<Event>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    cell: ({ row }) => {
+      const event = row.original;
+      return (
+        <Link
+          href={`/dashboard/events/${event.id}`}
+          className="font-medium hover:underline text-primary"
+        >
+          {row.getValue('name')}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: 'status',
@@ -106,57 +116,5 @@ export const columns: ColumnDef<Event>[] = [
     accessorKey: 'analytics.clicks',
     header: 'Clicks',
     cell: ({ row }) => <div className="text-right">{row.original.analytics?.clicks || 0}</div>,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      const event = row.original;
-      const pageUrl = event.status === 'Active' && event.slug ? `/events/${event.slug}` : `/events/${event.id}`;
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [isPending, startTransition] = useTransition();
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const router = useRouter();
-
-      return (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={pageUrl} target="_blank">View landing page</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>View registrations</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/dashboard/editor/${event.id}`}>Edit</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/dashboard/events/${event.id}/check-in`}>Check-in Desk</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                disabled={isPending}
-                onClick={() => {
-                  if (confirm('Are you sure you want to delete this event?')) {
-                    startTransition(async () => {
-                      await deleteEventAction(event.id);
-                      router.refresh();
-                    });
-                  }
-                }}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
   },
 ];

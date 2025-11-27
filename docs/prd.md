@@ -31,6 +31,7 @@
 
 ### 3.2. Event Management
 *   **Event Creation & Management:** An interface to create, view, and manage all events, including their status (Draft, Active, Completed).
+*   **Event Summary Page:** A central command center for each event showing key stats, a full searchable list of registrations, recent expenses, and quick actions.
 *   **Landing Page Templates:** A selection of pre-designed templates (e.g., Modern Conference, Creative Workshop) to kickstart the page creation process.
 
 ### 3.3. Landing Page Editor
@@ -42,6 +43,9 @@ A powerful, block-based editor for building and customizing event landing pages 
     *   **Text:** For paragraphs and detailed descriptions.
     *   **Image:** For standalone images.
     *   **Button:** For standalone calls to action.
+    *   **Speaker:** Display speaker profiles with image, name, role, and bio.
+    *   **Agenda:** Timeline view of event sessions.
+    *   **FAQ:** Accordion-style list of questions and answers.
 *   **Rich Block-Level Customization:**
     *   **Image Controls:** Upload custom images, or use AI to generate new images from a text prompt or edit existing ones.
     *   **Button Controls:** Customize button text, link (URL), size, color variant (primary, secondary, etc.), and alignment (left, center, right).
@@ -80,7 +84,6 @@ A powerful, block-based editor for building and customizing event landing pages 
 ## 5. Future Considerations & Potential Roadmap
 
 *   **Advanced Analytics:** Deeper insights into page views, click-through rates, and registration sources.
-*   **More Block Types:** Expand the editor with blocks for Speaker Bios, Agenda/Schedule, FAQ sections, and Video embeds.
 *   **A/B Testing:** Allow marketers to test different versions of landing pages to optimize conversion rates.
 *   **Advanced AI Tools:**
     *   AI-powered social media post generation for event promotion.

@@ -43,7 +43,7 @@ export function UpcomingEvent({ events }: { events: Event[] }) {
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <Button asChild className="w-full md:w-auto">
-                        <Link href={`/dashboard/editor/${nextEvent.id}`}>
+                        <Link href={`/dashboard/events/${nextEvent.id}`}>
                             Manage Event <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>

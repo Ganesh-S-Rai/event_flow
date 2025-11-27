@@ -7,9 +7,33 @@ import { templates } from './templates';
 // --- Block Types for Landing Page Content ---
 export type Block = {
   id: string;
-  type: 'heading' | 'text' | 'image' | 'speaker' | 'agenda' | 'button' | 'hero';
+  type: 'heading' | 'text' | 'image' | 'speaker' | 'agenda' | 'faq' | 'button' | 'hero';
   content: any; // This will vary based on the block type
 };
+
+export interface SpeakerBlockContent {
+  name: string;
+  role: string;
+  bio: string;
+  imageUrl: string;
+  linkedinUrl?: string;
+}
+
+export interface AgendaBlockContent {
+  items: {
+    time: string;
+    title: string;
+    description: string;
+    speakerId?: string;
+  }[];
+}
+
+export interface FAQBlockContent {
+  items: {
+    question: string;
+    answer: string;
+  }[];
+}
 
 export type Event = {
   id: string;

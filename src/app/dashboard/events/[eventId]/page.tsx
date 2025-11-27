@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { CheckInList } from './check-in/components/check-in-list';
+import { LeadsTable } from './components/leads-table';
+import { RecentExpenses } from './components/recent-expenses';
 
 export default async function EventDashboardPage({ params }: { params: Promise<{ eventId: string }> }) {
     const { eventId } = await params;
@@ -51,17 +53,24 @@ export default async function EventDashboardPage({ params }: { params: Promise<{
             {/* Stats Section */}
             <EventStats event={event} leads={eventLeads} expenses={eventExpenses} />
 
-            {/* Recent Registrations / Check-in Preview */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <div className="col-span-4 lg:col-span-7 space-y-4">
-                    <div className="border rounded-lg p-6 bg-card">
-                        <h3 className="text-lg font-semibold mb-4">Recent Registrations</h3>
-                        <CheckInList leads={eventLeads.slice(0, 5)} eventId={eventId} />
-                        {eventLeads.length > 5 && (
-                            <div className="mt-4 text-center">
-                                <p className="text-sm text-muted-foreground">Showing 5 of {eventLeads.length} registrations</p>
-                            </div>
-                        )}
+            <div className="grid gap-6 md:grid-cols-2">
+                {/* Registrations Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Registrations</h3>
+                    </div>
+                    <div className="border rounded-lg p-4 bg-card">
+                        <LeadsTable leads={eventLeads} />
+                    </div>
+                </div>
+
+                {/* Expenses Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Recent Expenses</h3>
+                    </div>
+                    <div className="border rounded-lg p-4 bg-card">
+                        <RecentExpenses expenses={eventExpenses} />
                     </div>
                 </div>
             </div>

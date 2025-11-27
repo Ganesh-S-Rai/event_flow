@@ -219,6 +219,8 @@ export function Editor({ event: initialEvent }: { event: Event }) {
             onAddBlock={handleAddBlock}
             onRemoveBlock={handleRemoveBlock}
             onMoveBlock={handleMoveBlock}
+            eventName={event.name}
+            eventDescription={event.description}
           />
         </div>
       </div>
