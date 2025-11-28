@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+// Font loading removed to avoid build-time network errors behind proxy
+// const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: 'EventFlow - Streamline Your Event Management',
