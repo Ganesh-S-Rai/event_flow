@@ -185,7 +185,9 @@ export function RenderBlock({ block, onButtonClick, eventId, isEditable = false,
 
             return (
                 <Container>
-                    <Tag {...commonProps} className={cn(sizeClass, alignmentClass, commonProps.className, "text-foreground")}>
+                    <Tag {...commonProps} className={cn(sizeClass, alignmentClass, commonProps.className, {
+                        "text-foreground": !block.styles?.textColor
+                    })}>
                         {content.text}
                     </Tag>
                 </Container>
@@ -194,7 +196,9 @@ export function RenderBlock({ block, onButtonClick, eventId, isEditable = false,
         case 'text':
             return (
                 <Container>
-                    <p {...commonProps} className={cn("text-muted-foreground text-lg leading-relaxed", alignmentClass, commonProps.className)}>
+                    <p {...commonProps} className={cn("text-lg leading-relaxed", alignmentClass, commonProps.className, {
+                        "text-muted-foreground": !block.styles?.textColor
+                    })}>
                         {content.text}
                     </p>
                 </Container>
@@ -214,11 +218,22 @@ export function RenderBlock({ block, onButtonClick, eventId, isEditable = false,
             );
 
         case 'button':
+            const buttonStyles = block.styles?.buttonStyles || {};
             const button = (
                 <Button
                     size={(content.size || 'default') as ButtonProps['size']}
                     variant={(content.variant || 'default') as ButtonProps['variant']}
-                    className="pointer-events-auto"
+                    className={cn("pointer-events-auto shadow-sm hover:scale-105 transition-transform", {
+                        'text-sm px-4 py-2': buttonStyles.fontSize === 'sm',
+                        'text-base px-6 py-3': buttonStyles.fontSize === 'default',
+                        'text-lg px-8 py-6': buttonStyles.fontSize === 'lg',
+                        'text-xl px-10 py-8': buttonStyles.fontSize === 'xl',
+                    })}
+                    style={{
+                        color: buttonStyles.color,
+                        backgroundColor: buttonStyles.backgroundColor,
+                        fontSize: buttonStyles.fontSize && !['sm', 'default', 'lg', 'xl'].includes(buttonStyles.fontSize) ? buttonStyles.fontSize : undefined
+                    }}
                     onClick={handleButtonClick}
                 >
                     {content.text}

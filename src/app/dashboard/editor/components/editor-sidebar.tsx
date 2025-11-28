@@ -295,6 +295,8 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                                 <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
                             </ToggleGroup>
                         </div>
+
+
                     </>
                 )}
 
@@ -402,6 +404,36 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                                 <ToggleGroupItem value="center"><AlignCenter className="h-4 w-4" /></ToggleGroupItem>
                                 <ToggleGroupItem value="right"><AlignRight className="h-4 w-4" /></ToggleGroupItem>
                             </ToggleGroup>
+                        </div>
+
+                        <Separator className="my-4" />
+                        <h4 className="font-medium text-sm">Button Styles</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <Label className="text-xs">Font Size</Label>
+                                <Select value={selectedBlock.styles?.buttonStyles?.fontSize || 'default'} onValueChange={(val) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, fontSize: val } })}>
+                                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="sm">Small</SelectItem>
+                                        <SelectItem value="default">Medium</SelectItem>
+                                        <SelectItem value="lg">Large</SelectItem>
+                                        <SelectItem value="xl">Extra Large</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Text Color</Label>
+                                <div className="flex gap-1">
+                                    <Input type="color" value={selectedBlock.styles?.buttonStyles?.color || '#ffffff'} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, color: e.target.value } })} className="w-8 h-8 p-0 border-0" />
+                                </div>
+                            </div>
+                            <div className="space-y-1 col-span-2">
+                                <Label className="text-xs">Background Color</Label>
+                                <div className="flex gap-2">
+                                    <Input type="color" value={selectedBlock.styles?.buttonStyles?.backgroundColor || '#000000'} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, backgroundColor: e.target.value } })} className="w-8 h-8 p-0 border-0" />
+                                    <Input value={selectedBlock.styles?.buttonStyles?.backgroundColor || ''} onChange={(e) => onUpdateBlock(selectedBlock.id, { ...content }, { ...selectedBlock.styles, buttonStyles: { ...selectedBlock.styles?.buttonStyles, backgroundColor: e.target.value } })} placeholder="#000000" className="h-8 text-xs flex-1" />
+                                </div>
+                            </div>
                         </div>
                     </>
                 )}
@@ -611,7 +643,7 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                         </Select>
                     </div>
                 </div>
-            </ScrollArea>
-        </div>
+            </ScrollArea >
+        </div >
     );
 }

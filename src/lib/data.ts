@@ -1,6 +1,6 @@
 
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, limit } from 'firebase/firestore';
-import { db } from './firebase'; // Make sure you have this file to initialize Firestore
+import { db } from './firebase';
 import { unstable_noStore as noStore } from 'next/cache';
 import { templates } from './templates';
 
@@ -97,9 +97,10 @@ export type Expense = {
   status: 'Pending' | 'Approved' | 'Rejected';
 };
 
-// --- MOCK DATA STORE ---
-const USE_MOCK_DATA = true;
+// --- DATA STORE ---
+const USE_MOCK_DATA = false;
 
+// Mock data kept for reference or fallback if needed, but not used when USE_MOCK_DATA is false
 let mockEvents: Event[] = [
   {
     id: 'evt-1',
@@ -179,8 +180,18 @@ export const getLeads = async (): Promise<Lead[]> => {
 export const getExpenses = async (): Promise<Expense[]> => {
   noStore();
   if (USE_MOCK_DATA) return Promise.resolve(mockExpenses);
-  // Implement Firestore fetch if needed later
-  return [];
+
+  try {
+    const querySnapshot = await getDocs(collection(db, "expenses"));
+    const expenses: Expense[] = [];
+    querySnapshot.forEach((doc) => {
+      expenses.push({ id: doc.id, ...doc.data() } as Expense);
+    });
+    return expenses;
+  } catch (error) {
+    console.error("Error fetching expenses:", error);
+    return [];
+  }
 };
 
 export const addExpense = async (expense: Omit<Expense, 'id'>) => {
@@ -189,8 +200,14 @@ export const addExpense = async (expense: Omit<Expense, 'id'>) => {
     mockExpenses.push(newExpense);
     return Promise.resolve(newExpense.id);
   }
-  // Implement Firestore add if needed later
-  return "";
+
+  try {
+    const docRef = await addDoc(collection(db, "expenses"), expense);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding expense:", error);
+    throw new Error("Failed to add expense.");
+  }
 };
 
 export const getEventById = async (id: string): Promise<Event | undefined> => {
