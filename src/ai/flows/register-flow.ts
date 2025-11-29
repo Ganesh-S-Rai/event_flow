@@ -1,11 +1,11 @@
 
 'use server';
 /**
- * @fileOverview A flow for registering a new lead, generating a QR code, and sending a confirmation email.
+ * @fileOverview A flow for registering a new attendee, generating a QR code, and sending a confirmation email.
  *
- * - registerLead - A function that handles the lead registration process.
- * - RegisterLeadInput - The input type for the registerLead function.
- * - RegisterLeadOutput - The return type for the registerLead function.
+ * - processRegistration - A function that handles the registration process.
+ * - RegistrationInput - The input type for the processRegistration function.
+ * - RegistrationOutput - The return type for the processRegistration function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -16,36 +16,36 @@ import * as QRCode from 'qrcode';
 import { sendMarketingEmail } from './send-marketing-email-flow';
 import { sendEmail } from '@/lib/netcore';
 
-const RegisterLeadInputSchema = z.object({
+const RegistrationInputSchema = z.object({
   eventId: z.string().describe('The ID of the event.'),
   eventName: z.string().describe('The name of the event.'),
   registrationDetails: z
     .record(z.string())
     .describe('Key-value pairs of registration form data.'),
 });
-export type RegisterLeadInput = z.infer<typeof RegisterLeadInputSchema>;
+export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 
-const RegisterLeadOutputSchema = z.object({
-  leadId: z.string().describe('The ID of the newly created lead document.'),
+const RegistrationOutputSchema = z.object({
+  registrationId: z.string().describe('The ID of the newly created registration document.'),
   qrCode: z
     .string()
     .describe(
       "A data URI of the generated QR code image. Expected format: 'data:image/png;base64,<encoded_data>'."
     ),
 });
-export type RegisterLeadOutput = z.infer<typeof RegisterLeadOutputSchema>;
+export type RegistrationOutput = z.infer<typeof RegistrationOutputSchema>;
 
-export async function registerLead(
-  input: RegisterLeadInput
-): Promise<RegisterLeadOutput> {
-  return registerLeadFlow(input);
+export async function processRegistration(
+  input: RegistrationInput
+): Promise<RegistrationOutput> {
+  return processRegistrationFlow(input);
 }
 
-const registerLeadFlow = ai.defineFlow(
+const processRegistrationFlow = ai.defineFlow(
   {
-    name: 'registerLeadFlow',
-    inputSchema: RegisterLeadInputSchema,
-    outputSchema: RegisterLeadOutputSchema,
+    name: 'processRegistrationFlow',
+    inputSchema: RegistrationInputSchema,
+    outputSchema: RegistrationOutputSchema,
   },
   async (input) => {
     const { eventId, eventName, registrationDetails } = input;
@@ -70,8 +70,8 @@ const registerLeadFlow = ai.defineFlow(
     }
     userName = userName.trim() || 'Guest'; // Default to Guest if absolutely nothing found
 
-    // 1. Create a new lead document in Firestore
-    const leadData = {
+    // 1. Create a new registration document in Firestore
+    const registrationData = {
       name: userName,
       email: userEmail,
       eventId,
@@ -81,8 +81,8 @@ const registerLeadFlow = ai.defineFlow(
       registrationDetails,
     };
 
-    const leadRef = await addDoc(collection(db, 'leads'), leadData);
-    const leadId = leadRef.id;
+    const registrationRef = await addDoc(collection(db, 'registrations'), registrationData);
+    const registrationId = registrationRef.id;
 
     // 1.1 Increment event registrations and analytics
     try {
@@ -97,8 +97,8 @@ const registerLeadFlow = ai.defineFlow(
       // Don't fail the whole flow just for stats
     }
 
-    // 2. Generate a QR code containing the leadId
-    const qrCodeDataUri = await QRCode.toDataURL(leadId, {
+    // 2. Generate a QR code containing the registrationId
+    const qrCodeDataUri = await QRCode.toDataURL(registrationId, {
       errorCorrectionLevel: 'H',
       type: 'image/png',
       margin: 1,
@@ -154,7 +154,7 @@ const registerLeadFlow = ai.defineFlow(
 
           // Skip the default sendMarketingEmail if auto-reply was sent
           return {
-            leadId,
+            registrationId,
             qrCode: qrCodeDataUri,
           };
         }
@@ -173,7 +173,7 @@ const registerLeadFlow = ai.defineFlow(
 
 
     return {
-      leadId,
+      registrationId,
       qrCode: qrCodeDataUri,
     };
   }

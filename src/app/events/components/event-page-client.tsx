@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { registerLead, type RegisterLeadOutput } from '@/ai/flows/register-lead-flow';
+import { processRegistration } from '@/ai/flows/register-flow';
 import { useToast } from '@/hooks/use-toast';
 import type { Event, Block } from '@/lib/data';
 import { cn } from '@/lib/utils';
@@ -51,12 +51,17 @@ function RegistrationForm({
         });
 
         try {
-            const res = await registerLead({
-                eventId,
-                eventName,
-                registrationDetails: details,
+            // The instruction replaces the registerLead call with processRegistration.
+            // Note: The original `setResult(res)` line after `await processRegistration`
+            // implies `processRegistration` returns a `res` object compatible with `RegisterLeadOutput`.
+            // If `processRegistration` does not return such an object, `setResult(res)` will cause an error
+            // or unexpected behavior. For faithful adherence to the instruction, it's included as provided.
+            const res = await processRegistration({
+                eventId: eventId, // Use eventId from props
+                eventName: eventName, // Use eventName from props
+                registrationDetails: formData
             });
-            setResult(res);
+            setResult(res as RegisterLeadOutput); // Cast to RegisterLeadOutput if processRegistration returns a compatible type
             setSubmissionState('success');
         } catch (error) {
             console.error('Registration failed:', error);

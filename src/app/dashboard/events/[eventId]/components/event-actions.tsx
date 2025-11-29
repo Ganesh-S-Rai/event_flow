@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Download, Edit, QrCode, ExternalLink } from 'lucide-react';
+import { Download, Edit, QrCode, ExternalLink, Send } from 'lucide-react';
 import Link from 'next/link';
 import type { Event } from '@/lib/data';
 
@@ -32,9 +32,15 @@ export function EventActions({ event }: EventActionsProps) {
                     Check-in Desk
                 </Link>
             </Button>
+            <Button variant="outline" size="sm" asChild>
+                <Link href={`/dashboard/events/${event.id}/broadcasts`}>
+                    <Send className="mr-2 h-4 w-4" />
+                    Broadcasts
+                </Link>
+            </Button>
             <Button variant="default" size="sm">
                 <Download className="mr-2 h-4 w-4" />
-                Download Leads
+                Download Registrations
             </Button>
         </div>
     );

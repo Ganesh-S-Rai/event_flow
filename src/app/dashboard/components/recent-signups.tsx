@@ -6,10 +6,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { Lead } from '@/lib/data';
+import type { Registration } from '@/lib/data';
 
-export function RecentSignups({ leads }: { leads: Lead[] }) {
-  const recentLeads = leads
+export function RecentSignups({ registrations }: { registrations: Registration[] }) {
+  const recentRegistrations = registrations
     .sort(
       (a, b) =>
         new Date(b.registrationDate).getTime() -
@@ -20,30 +20,30 @@ export function RecentSignups({ leads }: { leads: Lead[] }) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Recent Sign-ups</CardTitle>
+        <CardTitle>Recent Registrations</CardTitle>
         <CardDescription>
-          {leads.filter((l) => l.status === 'New').length} new sign-ups this
+          {registrations.filter((r) => r.status === 'New').length} new registrations this
           month.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-8">
-          {recentLeads.map((lead, index) => (
-            <div className="flex items-center" key={lead.id}>
+          {recentRegistrations.map((reg, index) => (
+            <div className="flex items-center" key={reg.id}>
               <Avatar className="h-9 w-9">
                 <AvatarImage src={`/avatars/0${index + 1}.png`} alt="Avatar" />
                 <AvatarFallback>
-                  {lead.name.charAt(0).toUpperCase()}
+                  {reg.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="ml-4 space-y-1 flex-1">
-                <p className="text-sm font-medium leading-none">{lead.name}</p>
-                <p className="text-sm text-muted-foreground">{lead.email}</p>
+                <p className="text-sm font-medium leading-none">{reg.name}</p>
+                <p className="text-sm text-muted-foreground">{reg.email}</p>
               </div>
               <div className="ml-4 text-right">
-                <p className="text-sm font-medium">{lead.eventName}</p>
+                <p className="text-sm font-medium">{reg.eventName}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(lead.registrationDate).toLocaleDateString()} {new Date(lead.registrationDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(reg.registrationDate).toLocaleDateString()} {new Date(reg.registrationDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
             </div>

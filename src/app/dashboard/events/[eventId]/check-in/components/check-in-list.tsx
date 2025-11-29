@@ -5,17 +5,20 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, CheckCircle, QrCode } from 'lucide-react';
-import type { Lead } from '@/lib/data';
+import type { Registration } from '@/lib/data';
 import { checkInLeadAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
 
+import { QrScanner } from './qr-scanner';
+
 interface CheckInListProps {
-    leads: Lead[];
+    leads: Registration[];
     eventId: string;
 }
 
 export function CheckInList({ leads, eventId }: CheckInListProps) {
     const [search, setSearch] = useState('');
+    const [isScanning, setIsScanning] = useState(false);
     const { toast } = useToast();
 
     const filteredLeads = leads.filter(lead =>
@@ -27,21 +30,54 @@ export function CheckInList({ leads, eventId }: CheckInListProps) {
         try {
             await checkInLeadAction(leadId, eventId);
             toast({ title: "Checked In", description: "Attendee marked as present." });
+            return true;
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: "Failed to check in." });
+            return false;
         }
+    };
+
+    const handleScan = async (decodedText: string) => {
+        // decodedText should be the leadId
+        const lead = leads.find(l => l.id === decodedText);
+
+        if (lead) {
+            if (lead.status === 'Attended') {
+                toast({ title: "Already Checked In", description: `${lead.name} is already marked present.`, variant: "default" });
+            } else {
+                const success = await handleCheckIn(lead.id);
+                if (success) {
+                    // Optional: Play sound
+                }
+            }
+        } else {
+            toast({ variant: "destructive", title: "Invalid QR Code", description: "Lead not found for this event." });
+        }
+        setIsScanning(false);
     };
 
     return (
         <div className="space-y-4">
-            <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Search by name or email..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-8"
+            {isScanning && (
+                <QrScanner
+                    onScan={handleScan}
+                    onClose={() => setIsScanning(false)}
                 />
+            )}
+
+            <div className="flex gap-2">
+                <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search by name or email..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-8"
+                    />
+                </div>
+                <Button onClick={() => setIsScanning(true)}>
+                    <QrCode className="mr-2 h-4 w-4" /> Scan QR
+                </Button>
             </div>
 
             <div className="space-y-2">

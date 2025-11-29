@@ -1,5 +1,5 @@
 
-import { getEvents, getLeads, getExpenses } from '@/lib/data';
+import { getEvents, getRegistrations, getExpenses } from '@/lib/data';
 import { StatsCards } from './components/stats-cards';
 import { Overview } from './components/overview';
 import { RecentSignups } from './components/recent-signups';
@@ -10,7 +10,7 @@ import { RoiCards } from './components/roi-cards';
 
 export default async function DashboardPage() {
   const events = await getEvents();
-  const leads = await getLeads();
+  const registrations = await getRegistrations();
   const expenses = await getExpenses();
 
   return (
@@ -24,14 +24,14 @@ export default async function DashboardPage() {
       </div>
 
       {/* ROI & Budget Section */}
-      <RoiCards events={events} leads={leads} expenses={expenses} />
+      <RoiCards events={events} registrations={registrations} expenses={expenses} />
 
       <UpcomingEvent events={events} />
 
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-7">
-          <RecentSignups leads={leads} />
+          <RecentSignups registrations={registrations} />
         </div>
       </div>
     </div>

@@ -76,13 +76,13 @@ export type Event = {
   };
 };
 
-export type Lead = {
+export type Registration = {
   id: string;
   name: string;
   email: string;
   eventId: string;
   eventName: string;
-  status: 'New' | 'Qualified' | 'Contacted' | 'Converted' | 'Lost' | 'Junk' | 'Attended'; // Expanded status list
+  status: 'New' | 'Qualified' | 'Contacted' | 'Converted' | 'Lost' | 'Junk' | 'Attended';
   registrationDate: string;
   registrationDetails?: { [key: string]: string };
 };
@@ -134,9 +134,25 @@ let mockEvents: Event[] = [
   }
 ];
 
-let mockLeads: Lead[] = [
-  { id: 'l1', name: 'John Doe', email: 'john@example.com', eventId: 'evt-1', eventName: 'Tech Conference 2024', status: 'New', registrationDate: new Date().toISOString() },
-  { id: 'l2', name: 'Jane Smith', email: 'jane@example.com', eventId: 'evt-1', eventName: 'Tech Conference 2024', status: 'Converted', registrationDate: new Date().toISOString() }
+let mockRegistrations: Registration[] = [
+  {
+    id: '1',
+    name: 'Alice Johnson',
+    email: 'alice@example.com',
+    eventId: 'evt-1',
+    eventName: 'Tech Conference 2024',
+    status: 'New',
+    registrationDate: '2024-03-10T10:00:00Z',
+  },
+  {
+    id: '2',
+    name: 'Bob Smith',
+    email: 'bob@example.com',
+    eventId: 'evt-1',
+    eventName: 'Tech Conference 2024',
+    status: 'Qualified',
+    registrationDate: '2024-03-11T14:30:00Z',
+  },
 ];
 
 let mockExpenses: Expense[] = [
@@ -162,19 +178,19 @@ export const getEvents = async (): Promise<Event[]> => {
   }
 };
 
-export const getLeads = async (): Promise<Lead[]> => {
+export const getRegistrations = async (): Promise<Registration[]> => {
   noStore();
-  if (USE_MOCK_DATA) return Promise.resolve(mockLeads);
+  if (USE_MOCK_DATA) return Promise.resolve(mockRegistrations);
 
   try {
-    const querySnapshot = await getDocs(collection(db, "leads"));
-    const leads: Lead[] = [];
+    const querySnapshot = await getDocs(collection(db, "registrations"));
+    const registrations: Registration[] = [];
     querySnapshot.forEach((doc) => {
-      leads.push({ id: doc.id, ...doc.data() } as Lead);
+      registrations.push({ id: doc.id, ...doc.data() } as Registration);
     });
-    return leads;
+    return registrations;
   } catch (error) {
-    console.error("Error fetching leads:", error);
+    console.error("Error fetching registrations:", error);
     return [];
   }
 };
@@ -211,6 +227,32 @@ export const addExpense = async (expense: Omit<Expense, 'id'>) => {
     throw new Error("Failed to add expense.");
   }
 };
+
+export async function addRegistration(registration: Omit<Registration, 'id'>) {
+  if (USE_MOCK_DATA) {
+    const newRegistration = { ...registration, id: Math.random().toString(36).substr(2, 9) };
+    mockRegistrations.push(newRegistration);
+
+    // Update event stats mock
+    const event = mockEvents.find(e => e.id === registration.eventId);
+    if (event) {
+      event.registrations += 1;
+      if (event.analytics) {
+        event.analytics.formSubmissions += 1;
+      }
+    }
+
+    return newRegistration;
+  }
+
+  try {
+    const docRef = await addDoc(collection(db, 'registrations'), registration);
+    return { id: docRef.id, ...registration };
+  } catch (error) {
+    console.error('Error adding registration:', error);
+    throw error;
+  }
+}
 
 export const getEventById = async (id: string): Promise<Event | undefined> => {
   noStore();

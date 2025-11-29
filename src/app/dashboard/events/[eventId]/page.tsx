@@ -1,4 +1,4 @@
-import { getEventById, getLeads, getExpenses } from '@/lib/data';
+import { getEventById, getRegistrations, getExpenses } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { EventStats } from './components/event-stats';
 import { EventActions } from './components/event-actions';
@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { CheckInList } from './check-in/components/check-in-list';
-import { LeadsTable } from './components/leads-table';
+import { RegistrationsTable } from './components/registrations-table';
 import { RecentExpenses } from './components/recent-expenses';
 import { AddExpenseDialog } from '../../expenses/components/add-expense-dialog';
 
@@ -18,8 +18,8 @@ export default async function EventDashboardPage({ params }: { params: Promise<{
         notFound();
     }
 
-    const allLeads = await getLeads();
-    const eventLeads = allLeads.filter(l => l.eventId === eventId);
+    const allRegistrations = await getRegistrations();
+    const eventRegistrations = allRegistrations.filter(r => r.eventId === eventId);
 
     const allExpenses = await getExpenses();
     const eventExpenses = allExpenses.filter(e => e.eventId === eventId);
@@ -52,7 +52,7 @@ export default async function EventDashboardPage({ params }: { params: Promise<{
             <Separator />
 
             {/* Stats Section */}
-            <EventStats event={event} leads={eventLeads} expenses={eventExpenses} />
+            <EventStats event={event} registrations={eventRegistrations} expenses={eventExpenses} />
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Registrations Section */}
@@ -61,7 +61,7 @@ export default async function EventDashboardPage({ params }: { params: Promise<{
                         <h3 className="text-lg font-semibold">Registrations</h3>
                     </div>
                     <div className="border rounded-lg p-4 bg-card">
-                        <LeadsTable leads={eventLeads} />
+                        <RegistrationsTable registrations={eventRegistrations} />
                     </div>
                 </div>
 

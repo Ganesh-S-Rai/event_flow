@@ -16,9 +16,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { Lead } from '@/lib/data';
+import type { Registration } from '@/lib/data';
 
-const statusVariantMap: Record<Lead['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const statusVariantMap: Record<Registration['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
   New: 'default',
   Qualified: 'default', // Green-ish usually, but default works for now
   Contacted: 'outline',
@@ -29,7 +29,7 @@ const statusVariantMap: Record<Lead['status'], 'default' | 'secondary' | 'destru
 };
 
 
-export const columns: ColumnDef<Lead>[] = [
+export const columns: ColumnDef<Registration>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -78,7 +78,7 @@ export const columns: ColumnDef<Lead>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
-      const status: Lead['status'] = row.getValue('status');
+      const status: Registration['status'] = row.getValue('status');
       return <Badge variant={statusVariantMap[status]}>{status}</Badge>;
     },
   },
@@ -94,14 +94,14 @@ export const columns: ColumnDef<Lead>[] = [
   {
     id: 'actions',
     cell: ({ row }) => {
-      const lead = row.original;
+      const registration = row.original;
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const { toast } = useToast();
 
       const handleSendEmail = async () => {
         try {
-          await sendEmailAction(lead.id);
-          toast({ title: "Email Sent", description: "Confirmation email sent to lead." });
+          await sendEmailAction(registration.id);
+          toast({ title: "Email Sent", description: "Confirmation email sent to attendee." });
         } catch (error) {
           toast({ variant: "destructive", title: "Error", description: "Failed to send email." });
         }
@@ -119,7 +119,7 @@ export const columns: ColumnDef<Lead>[] = [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(lead.email)}
+                onClick={() => navigator.clipboard.writeText(registration.email)}
               >
                 Copy email
               </DropdownMenuItem>
@@ -128,7 +128,7 @@ export const columns: ColumnDef<Lead>[] = [
                 Send Confirmation
               </DropdownMenuItem>
               <DropdownMenuItem>View details</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">Delete lead</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">Delete registration</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

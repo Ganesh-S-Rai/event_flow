@@ -2,13 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import type { Lead } from '@/lib/data';
+import type { Registration } from '@/lib/data';
 
-interface LeadActionsProps {
-    data: Lead[];
+interface RegistrationActionsProps {
+    data: Registration[];
 }
 
-export function LeadActions({ data }: LeadActionsProps) {
+export function RegistrationActions({ data }: RegistrationActionsProps) {
     const handleExport = () => {
         if (!data || data.length === 0) return;
 
@@ -16,13 +16,13 @@ export function LeadActions({ data }: LeadActionsProps) {
         const headers = ['ID', 'Name', 'Email', 'Event', 'Status', 'Date'];
 
         // Map data to CSV rows
-        const rows = data.map(lead => [
-            lead.id,
-            `"${lead.name}"`, // Quote strings to handle commas
-            lead.email,
-            `"${lead.eventName}"`,
-            lead.status,
-            new Date(lead.registrationDate).toLocaleDateString()
+        const rows = data.map(reg => [
+            reg.id,
+            `"${reg.name}"`, // Quote strings to handle commas
+            reg.email,
+            `"${reg.eventName}"`,
+            reg.status,
+            new Date(reg.registrationDate).toLocaleDateString()
         ]);
 
         // Combine headers and rows
@@ -36,7 +36,7 @@ export function LeadActions({ data }: LeadActionsProps) {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `registrations_export_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();

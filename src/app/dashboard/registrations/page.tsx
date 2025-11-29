@@ -1,22 +1,22 @@
-import { getLeads } from '@/lib/data';
+import { getRegistrations } from '@/lib/data';
 import { columns } from './components/columns';
 import { DataTable } from './components/data-table';
 
-import { LeadActions } from './components/lead-actions';
+import { RegistrationActions } from './components/registration-actions';
 
-export default async function LeadsPage() {
-  const data = await getLeads();
+export default async function RegistrationsPage() {
+  const data = await getRegistrations();
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Leads</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Registrations</h2>
           <p className="text-muted-foreground">
             Here's a list of all event registrations.
           </p>
         </div>
-        <LeadActions data={data} />
+        <RegistrationActions data={data} />
       </div>
       <DataTable columns={columns} data={data} />
     </div>

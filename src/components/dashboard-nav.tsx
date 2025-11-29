@@ -21,7 +21,7 @@ const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/dashboard/events', icon: Calendar, label: 'Events' },
   { href: '/dashboard/expenses', icon: Receipt, label: 'Expenses' },
-  { href: '/dashboard/leads', icon: Users, label: 'Leads' },
+  { href: '/dashboard/registrations', icon: Users, label: 'Registrations' },
   { href: '/dashboard/templates', icon: GalleryVertical, label: 'Templates' },
   { href: '/dashboard/tools', icon: Wand2, label: 'Tools' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
