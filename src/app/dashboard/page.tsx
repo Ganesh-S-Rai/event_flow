@@ -28,11 +28,7 @@ export default async function DashboardPage() {
 
       <UpcomingEvent events={events} />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 lg:col-span-7 space-y-4">
-          <Overview />
-        </div>
-      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-7">
           <RecentSignups leads={leads} />

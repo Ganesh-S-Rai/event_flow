@@ -36,12 +36,15 @@ export function RecentSignups({ leads }: { leads: Lead[] }) {
                   {lead.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="ml-4 space-y-1">
+              <div className="ml-4 space-y-1 flex-1">
                 <p className="text-sm font-medium leading-none">{lead.name}</p>
                 <p className="text-sm text-muted-foreground">{lead.email}</p>
               </div>
-              <div className="ml-auto font-medium">
-                +{Math.floor(Math.random() * 20 + 1)}%
+              <div className="ml-4 text-right">
+                <p className="text-sm font-medium">{lead.eventName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(lead.registrationDate).toLocaleDateString()} {new Date(lead.registrationDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
               </div>
             </div>
           ))}

@@ -1,8 +1,8 @@
-import { defineFlow, runFlow, generate } from 'genkit';
+import { ai } from '@/ai/genkit';
 import { gemini15Flash } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
-export const extractExpenseFlow = defineFlow(
+export const extractExpenseFlow = ai.defineFlow(
     {
         name: 'extractExpense',
         inputSchema: z.object({
@@ -29,7 +29,7 @@ export const extractExpenseFlow = defineFlow(
     `;
 
         try {
-            const response = await generate({
+            const response = await ai.generate({
                 model: gemini15Flash,
                 prompt: [
                     { text: prompt },
@@ -47,7 +47,11 @@ export const extractExpenseFlow = defineFlow(
                 }
             });
 
-            return response.output();
+            if (!response.output) {
+                throw new Error("AI returned no output");
+            }
+
+            return response.output;
         } catch (error) {
             console.error("AI Extraction Failed:", error);
             // Return a safe fallback or rethrow

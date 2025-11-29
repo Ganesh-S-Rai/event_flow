@@ -187,6 +187,9 @@ export function Editor({ event: initialEvent }: { event: Event }) {
             <input type="hidden" name="eventId" value={event.id} />
             <input type="hidden" name="name" value={event.name} />
             <input type="hidden" name="content" value={JSON.stringify(event.content || [])} />
+            <input type="hidden" name="formFields" value={JSON.stringify(event.formFields || [])} />
+            <input type="hidden" name="formTitle" value={event.formTitle || ''} />
+            <input type="hidden" name="autoReplyConfig" value={JSON.stringify(event.autoReplyConfig || {})} />
             <input type="hidden" name="slug" value={slug} />
             <PublishButton status={status} />
           </form>
@@ -222,8 +225,9 @@ export function Editor({ event: initialEvent }: { event: Event }) {
             eventName={event.name}
             eventDescription={event.description}
             formFields={event.formFields}
+            formTitle={event.formTitle}
             autoReplyConfig={event.autoReplyConfig}
-            onUpdateEvent={(fields, config) => setEvent(prev => ({ ...prev, formFields: fields, autoReplyConfig: config }))}
+            onUpdateEvent={(fields, config, title) => setEvent(prev => ({ ...prev, formFields: fields, autoReplyConfig: config, formTitle: title }))}
           />
         </div>
       </div>

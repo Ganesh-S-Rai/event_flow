@@ -14,6 +14,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import * as QRCode from 'qrcode';
 import { sendMarketingEmail } from './send-marketing-email-flow';
+import { sendEmail } from '@/lib/netcore';
 
 const RegisterLeadInputSchema = z.object({
   eventId: z.string().describe('The ID of the event.'),
@@ -48,9 +49,26 @@ const registerLeadFlow = ai.defineFlow(
   },
   async (input) => {
     const { eventId, eventName, registrationDetails } = input;
-    const userEmail = registrationDetails.work_email || '';
-    const userName = `${registrationDetails.first_name || ''} ${registrationDetails.last_name || ''
-      }`.trim();
+
+    // Helper to find value by fuzzy key matching
+    const findValue = (keywords: string[]) => {
+      const key = Object.keys(registrationDetails).find(k =>
+        keywords.some(keyword => k.toLowerCase().includes(keyword))
+      );
+      return key ? registrationDetails[key] : '';
+    };
+
+    // Robust extraction
+    const userEmail = findValue(['email', 'mail']) || '';
+    const firstName = findValue(['first', 'fname', 'name']) || ''; // Fallback to just 'name' if first not found
+    const lastName = findValue(['last', 'lname']) || '';
+
+    // Construct full name, avoiding "undefined undefined"
+    let userName = firstName;
+    if (lastName && !userName.includes(lastName)) {
+      userName = `${userName} ${lastName}`;
+    }
+    userName = userName.trim() || 'Guest'; // Default to Guest if absolutely nothing found
 
     // 1. Create a new lead document in Firestore
     const leadData = {
@@ -65,6 +83,19 @@ const registerLeadFlow = ai.defineFlow(
 
     const leadRef = await addDoc(collection(db, 'leads'), leadData);
     const leadId = leadRef.id;
+
+    // 1.1 Increment event registrations and analytics
+    try {
+      const { doc, updateDoc, increment } = await import('firebase/firestore');
+      const eventRef = doc(db, 'events', eventId);
+      await updateDoc(eventRef, {
+        registrations: increment(1),
+        'analytics.formSubmissions': increment(1)
+      });
+    } catch (error) {
+      console.error("Failed to increment event stats:", error);
+      // Don't fail the whole flow just for stats
+    }
 
     // 2. Generate a QR code containing the leadId
     const qrCodeDataUri = await QRCode.toDataURL(leadId, {
@@ -113,7 +144,19 @@ const registerLeadFlow = ai.defineFlow(
             customBody = customBody.replace(/{{qrCode}}/g, `<img src="${qrCodeDataUri}" alt="Your Registration QR Code" />`);
           }
 
-          emailBody = customBody;
+          // Use sendEmail for auto-reply
+          await sendEmail({
+            to: userEmail,
+            subject: emailSubject, // Use emailSubject which was updated above
+            html: customBody,
+            from: 'events@netcorecloud.com' // Ideally from config
+          }).catch(console.error); // Log error if email sending fails
+
+          // Skip the default sendMarketingEmail if auto-reply was sent
+          return {
+            leadId,
+            qrCode: qrCodeDataUri,
+          };
         }
       } catch (error) {
         console.error("Error fetching event for auto-reply config:", error);

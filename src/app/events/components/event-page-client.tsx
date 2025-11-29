@@ -26,13 +26,15 @@ function RegistrationForm({
     onOpenChange,
     fields,
     eventId,
-    eventName
+    eventName,
+    title
 }: {
     open: boolean,
     onOpenChange: (open: boolean) => void,
     fields: FormField[],
     eventId: string,
     eventName: string,
+    title?: string
 }) {
     const [submissionState, setSubmissionState] = useState<'form' | 'submitting' | 'success'>('form');
     const [result, setResult] = useState<RegisterLeadOutput | null>(null);
@@ -81,10 +83,10 @@ function RegistrationForm({
                 {submissionState === 'form' && (
                     <>
                         <DialogHeader>
-                            <DialogTitle>Tell us about you</DialogTitle>
+                            <DialogTitle>{title || 'Tell us about you'}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                            <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-4">
+                            <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto px-1 pb-2">
                                 {fields.map(field => {
                                     const isOptional = field.label.toLowerCase().includes('(optional)');
                                     if (field.type === 'select') {
@@ -115,7 +117,7 @@ function RegistrationForm({
                             <div className="flex items-start space-x-3 pt-2">
                                 <Checkbox id="consent" defaultChecked required />
                                 <Label htmlFor="consent" className="text-sm text-muted-foreground font-normal">
-                                    By submitting, you agree to our <Link href="#" className="underline text-primary">privacy policy</Link>.
+                                    By submitting, you agree to our <Link href="https://netcorecloud.com/privacy-policy/" target="_blank" className="underline text-primary">privacy policy</Link>.
                                 </Label>
                             </div>
                             <Button type="submit" className="w-full">Submit</Button>
@@ -156,11 +158,18 @@ function RegistrationForm({
 
 export function EventPageClient({ event }: { event: Event }) {
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const { toast } = useToast();
     const { formFields = [], content = [] } = event;
 
     const handleOpenForm = () => {
         if (formFields.length > 0) {
             setIsFormOpen(true);
+        } else {
+            toast({
+                title: "Registration Unavailable",
+                description: "This event has no registration form configured.",
+                variant: "destructive"
+            });
         }
     };
 
@@ -179,6 +188,7 @@ export function EventPageClient({ event }: { event: Event }) {
                     fields={formFields}
                     eventId={event.id}
                     eventName={event.name}
+                    title={event.formTitle}
                 />
             )}
             <header className={`px-4 lg:px-6 h-14 flex items-center z-20 ${hasHeroBlock ? 'absolute top-0 left-0 right-0 bg-transparent text-white' : 'sticky top-0 bg-background/80 backdrop-blur-sm border-b'}`}>
@@ -199,7 +209,7 @@ export function EventPageClient({ event }: { event: Event }) {
             <main>
                 {/* If there's no hero block, add default padding */}
                 <div className={hasHeroBlock ? '' : 'py-12 md:py-24'}>
-                    <div className="container px-4 md:px-6 space-y-6">
+                    <div className="w-full">
                         {content.map(block => (
                             <RenderBlock key={block.id} block={block} onButtonClick={handleOpenForm} eventId={event.id} />
                         ))}
@@ -209,10 +219,10 @@ export function EventPageClient({ event }: { event: Event }) {
             <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
                 <p className="text-xs text-muted-foreground">&copy; 2024 {event.name}. All rights reserved.</p>
                 <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-                    <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+                    <Link href="https://netcorecloud.com/terms-of-service/" target="_blank" className="text-xs hover:underline underline-offset-4" prefetch={false}>
                         Terms of Service
                     </Link>
-                    <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+                    <Link href="https://netcorecloud.com/privacy-policy/" target="_blank" className="text-xs hover:underline underline-offset-4" prefetch={false}>
                         Privacy
                     </Link>
                 </nav>

@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createExpenseAction, analyzeReceiptAction } from '../actions';
 import type { Event } from '@/lib/data';
 
-export function AddExpenseDialog({ events }: { events: Event[] }) {
+export function AddExpenseDialog({ events, defaultEventId }: { events: Event[], defaultEventId?: string }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [analyzing, setAnalyzing] = useState(false);
@@ -28,7 +28,7 @@ export function AddExpenseDialog({ events }: { events: Event[] }) {
 
     // Form State
     const [formData, setFormData] = useState({
-        eventId: '',
+        eventId: defaultEventId || '',
         description: '',
         amount: '',
         date: new Date().toISOString().split('T')[0],
@@ -88,7 +88,7 @@ export function AddExpenseDialog({ events }: { events: Event[] }) {
             setOpen(false);
             // Reset form
             setFormData({
-                eventId: '',
+                eventId: defaultEventId || '',
                 description: '',
                 amount: '',
                 date: new Date().toISOString().split('T')[0],

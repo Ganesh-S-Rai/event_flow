@@ -28,11 +28,12 @@ interface EditorSidebarProps {
     eventName: string;
     eventDescription: string;
     formFields?: Event['formFields'];
+    formTitle?: string;
     autoReplyConfig?: Event['autoReplyConfig'];
-    onUpdateEvent?: (fields: NonNullable<Event['formFields']>, config: Event['autoReplyConfig']) => void;
+    onUpdateEvent?: (fields: NonNullable<Event['formFields']>, config: Event['autoReplyConfig'], title?: string) => void;
 }
 
-export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemoveBlock, onMoveBlock, eventName, eventDescription, formFields, autoReplyConfig, onUpdateEvent }: EditorSidebarProps) {
+export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemoveBlock, onMoveBlock, eventName, eventDescription, formFields, formTitle, autoReplyConfig, onUpdateEvent }: EditorSidebarProps) {
     const { toast } = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -177,6 +178,7 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                                 {onUpdateEvent && (
                                     <FormBuilder
                                         formFields={formFields || []}
+                                        formTitle={formTitle}
                                         autoReplyConfig={autoReplyConfig}
                                         onUpdate={onUpdateEvent}
                                     />
@@ -375,6 +377,7 @@ export function EditorSidebar({ selectedBlock, onUpdateBlock, onAddBlock, onRemo
                                 {onUpdateEvent && (
                                     <FormBuilder
                                         formFields={formFields || []}
+                                        formTitle={formTitle}
                                         autoReplyConfig={autoReplyConfig}
                                         onUpdate={onUpdateEvent}
                                     />

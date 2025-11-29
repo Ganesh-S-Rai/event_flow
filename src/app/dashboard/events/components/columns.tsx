@@ -18,6 +18,8 @@ import Link from 'next/link';
 import { deleteEventAction } from '../actions';
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { DeleteEventDialog } from './delete-event-dialog';
 
 const statusVariantMap: Record<Event['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
   Active: 'default',
@@ -117,4 +119,54 @@ export const columns: ColumnDef<Event>[] = [
     header: 'Clicks',
     cell: ({ row }) => <div className="text-right">{row.original.analytics?.clicks || 0}</div>,
   },
+
+  {
+    id: 'actions',
+    cell: ({ row }) => <ActionCell event={row.original} />,
+  },
 ];
+
+function ActionCell({ event }: { event: Event }) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={() => navigator.clipboard.writeText(event.id)}
+          >
+            Copy Event ID
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/events/${event.id}`}>View Dashboard</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/editor/${event.id}`}>Edit Landing Page</Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            Delete Event
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DeleteEventDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        event={{ id: event.id, name: event.name }}
+      />
+    </>
+  );
+}

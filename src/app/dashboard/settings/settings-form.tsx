@@ -221,6 +221,37 @@ export function SettingsForm({ initialConfig }: { initialConfig: AppConfig }) {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle>Custom Domain</CardTitle>
+            <CardDescription>
+              Connect your Netcore Cloud domain to host your landing pages.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>CNAME Record</Label>
+              <div className="rounded-md bg-muted p-4 text-sm">
+                <p className="mb-2">To use a custom domain (e.g., <code>events.netcorecloud.com</code>), add the following CNAME record to your DNS provider:</p>
+                <div className="flex items-center justify-between rounded bg-background p-2 border">
+                  <code className="text-xs">cname.vercel-dns.com</code>
+                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText('cname.vercel-dns.com')}>
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="domain">Your Domain</Label>
+              <Input id="domain" placeholder="e.g. events.netcorecloud.com" />
+              <p className="text-xs text-muted-foreground">Enter the domain you have configured.</p>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button>Verify Domain</Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
           <CardFooter className="flex justify-end p-6">
             <SubmitButton />
           </CardFooter>

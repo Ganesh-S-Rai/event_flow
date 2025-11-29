@@ -64,9 +64,14 @@ export function EventStats({ event, leads, expenses }: EventStatsProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{event.analytics?.views || 0}</div>
-                    <p className="text-xs text-muted-foreground">
-                        {event.analytics?.clicks || 0} clicks
-                    </p>
+                    <div className="flex flex-col gap-1 mt-1">
+                        <p className="text-xs text-muted-foreground">
+                            {event.analytics?.clicks || 0} total clicks
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            {event.analytics?.uniqueClicks || 0} unique clicks
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
         </div>

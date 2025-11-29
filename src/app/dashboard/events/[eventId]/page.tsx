@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { CheckInList } from './check-in/components/check-in-list';
 import { LeadsTable } from './components/leads-table';
 import { RecentExpenses } from './components/recent-expenses';
+import { AddExpenseDialog } from '../../expenses/components/add-expense-dialog';
 
 export default async function EventDashboardPage({ params }: { params: Promise<{ eventId: string }> }) {
     const { eventId } = await params;
@@ -68,6 +69,7 @@ export default async function EventDashboardPage({ params }: { params: Promise<{
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold">Recent Expenses</h3>
+                        <AddExpenseDialog events={[event]} defaultEventId={event.id} />
                     </div>
                     <div className="border rounded-lg p-4 bg-card">
                         <RecentExpenses expenses={eventExpenses} />

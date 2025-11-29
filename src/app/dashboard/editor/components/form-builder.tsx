@@ -12,17 +12,19 @@ import type { Event } from '@/lib/data';
 
 interface FormBuilderProps {
     formFields: NonNullable<Event['formFields']>;
+    formTitle?: string;
     autoReplyConfig: Event['autoReplyConfig'];
-    onUpdate: (fields: NonNullable<Event['formFields']>, config: Event['autoReplyConfig']) => void;
+    onUpdate: (fields: NonNullable<Event['formFields']>, config: Event['autoReplyConfig'], title?: string) => void;
 }
 
-export function FormBuilder({ formFields, autoReplyConfig, onUpdate }: FormBuilderProps) {
+export function FormBuilder({ formFields, formTitle, autoReplyConfig, onUpdate }: FormBuilderProps) {
     const [fields, setFields] = useState(formFields);
+    const [title, setTitle] = useState(formTitle || 'Tell us about you');
     const [config, setConfig] = useState(autoReplyConfig || { enabled: false, subject: '', body: '' });
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSave = () => {
-        onUpdate(fields, config);
+        onUpdate(fields, config, title);
         setIsOpen(false);
     };
 
@@ -61,6 +63,14 @@ export function FormBuilder({ formFields, autoReplyConfig, onUpdate }: FormBuild
                     </TabsList>
 
                     <TabsContent value="form" className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Form Title</Label>
+                            <Input
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Tell us about you"
+                            />
+                        </div>
                         <div className="space-y-4">
                             {fields.map((field, index) => (
                                 <div key={field.id} className="flex gap-2 items-start border p-3 rounded-md bg-muted/20">

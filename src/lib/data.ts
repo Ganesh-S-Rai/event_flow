@@ -61,9 +61,11 @@ export type Event = {
 
   // Form fields remain separate as they define the registration logic
   formFields?: { id: string; label: string; type: 'text' | 'email' | 'tel' | 'select'; placeholder: string; options?: string[] }[];
+  formTitle?: string;
   analytics?: {
     views: number;
     clicks: number;
+    uniqueClicks?: number;
     formSubmissions: number;
   };
   budget?: number; // Total budget allocated for the event

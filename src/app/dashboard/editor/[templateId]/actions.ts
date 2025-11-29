@@ -13,6 +13,9 @@ const PublishEventSchema = z.object({
   name: z.string().min(1, 'Event name is required.'),
   slug: z.string().min(1, 'Slug is required.'),
   content: z.string().transform((str) => JSON.parse(str)),
+  formFields: z.string().transform((str) => JSON.parse(str)).optional(),
+  formTitle: z.string().optional(),
+  autoReplyConfig: z.string().transform((str) => JSON.parse(str)).optional(),
 });
 
 type FormState = {
@@ -42,8 +45,8 @@ export async function publishEventAction(
 
   try {
     const dataToUpdate: Partial<Event> = {
-        ...eventData,
-        status: 'Active',
+      ...eventData,
+      status: 'Active',
     };
     await updateEvent(eventId, dataToUpdate);
 
@@ -51,7 +54,7 @@ export async function publishEventAction(
     revalidatePath(`/dashboard/editor/${eventId}`);
     revalidatePath(`/events/${eventData.slug}`);
 
-    return { 
+    return {
       message: 'Successfully published event page.',
       data: { status: 'Active' },
     };
