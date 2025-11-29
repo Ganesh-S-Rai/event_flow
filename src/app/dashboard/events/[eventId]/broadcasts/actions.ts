@@ -1,6 +1,6 @@
 'use server';
 
-import { getLeads, getEventById } from '@/lib/data';
+import { getRegistrations, getEventById } from '@/lib/data';
 import { sendEmail } from '@/lib/netcore';
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
@@ -45,28 +45,28 @@ export async function draftBroadcastContent(eventName: string, eventDescription:
 
 export async function sendBroadcastAction(eventId: string, audience: string, subject: string, body: string) {
     try {
-        const leads = await getLeads();
-        // Filter leads for this event
-        let targetLeads = leads.filter(l => l.eventId === eventId);
+        const registrations = await getRegistrations();
+        // Filter registrations for this event
+        let targetRegistrations = registrations.filter(r => r.eventId === eventId);
 
         // Filter by audience
         if (audience === 'checked-in') {
-            targetLeads = targetLeads.filter(l => l.status === 'Attended');
+            targetRegistrations = targetRegistrations.filter(r => r.status === 'Attended');
         } else if (audience === 'registered') {
-            // All leads for this event are registered
+            // All registrations for this event are registered
         }
 
-        if (targetLeads.length === 0) {
+        if (targetRegistrations.length === 0) {
             return { success: false, error: 'No recipients found for this audience.' };
         }
 
         // Send emails (in parallel for speed, but consider batching for large lists)
-        const emailPromises = targetLeads.map(lead => {
+        const emailPromises = targetRegistrations.map(reg => {
             // Personalize body
-            const personalizedBody = body.replace('{{name}}', lead.name.split(' ')[0]);
+            const personalizedBody = body.replace('{{name}}', reg.name.split(' ')[0]);
 
             return sendEmail({
-                to: lead.email,
+                to: reg.email,
                 subject: subject,
                 html: personalizedBody,
                 from: 'events@netcorecloud.com' // Should be configurable
@@ -75,7 +75,7 @@ export async function sendBroadcastAction(eventId: string, audience: string, sub
 
         await Promise.all(emailPromises);
 
-        return { success: true, count: targetLeads.length };
+        return { success: true, count: targetRegistrations.length };
     } catch (error) {
         console.error("Broadcast failed:", error);
         return { success: false, error: 'Failed to send broadcast.' };
