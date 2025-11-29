@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addLead, getEventById } from '@/lib/data';
+import { addRegistration, getEventById } from '@/lib/data';
 
 export async function POST(
     request: NextRequest,
@@ -35,12 +35,14 @@ export async function POST(
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
         }
 
-        // 4. Save Lead
-        await addLead({
+        // 4. Save Registration
+        await addRegistration({
             eventId: event.id,
             eventName: event.name,
             email: email,
             name: name || 'Anonymous',
+            status: 'New',
+            registrationDate: new Date().toISOString(),
             registrationDetails: data // Store all other fields as details
         });
 

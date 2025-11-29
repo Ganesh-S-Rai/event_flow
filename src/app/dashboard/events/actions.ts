@@ -59,14 +59,14 @@ export async function deleteEventAction(id: string) {
   }
 }
 
-export async function sendEmailAction(leadId: string) {
+export async function sendEmailAction(registrationId: string) {
   // Simulate email sending
-  console.log(`Sending confirmation email to lead ${leadId}`);
+  console.log(`Sending confirmation email to registration ${registrationId}`);
 
   // Update status to Contacted
-  const { updateLeadStatus } = await import('@/lib/data');
-  await updateLeadStatus(leadId, 'Contacted');
+  const { updateRegistrationStatus } = await import('@/lib/data');
+  await updateRegistrationStatus(registrationId, 'Contacted');
 
-  revalidatePath('/dashboard/leads');
+  revalidatePath('/dashboard/registrations');
   return { success: true, message: 'Email sent successfully.' };
 }

@@ -5,21 +5,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Users, Calendar, BarChart3, Activity } from 'lucide-react';
-import type { Event, Lead } from '@/lib/data';
+import type { Event, Registration } from '@/lib/data';
 
 export function StatsCards({
   events,
-  leads,
+  registrations,
 }: {
   events: Event[];
-  leads: Lead[];
+  registrations: Registration[];
 }) {
-  const totalRegistrations = leads.length;
+  const totalRegistrations = registrations.length;
   const totalEvents = events.length;
-  const convertedLeads = leads.filter((l) => l.status === 'Converted').length;
+  const convertedRegistrations = registrations.filter((r) => r.status === 'Converted').length;
   const conversionRate =
     totalRegistrations > 0
-      ? ((convertedLeads / totalRegistrations) * 100).toFixed(1)
+      ? ((convertedRegistrations / totalRegistrations) * 100).toFixed(1)
       : '0.0';
 
   const stats = [

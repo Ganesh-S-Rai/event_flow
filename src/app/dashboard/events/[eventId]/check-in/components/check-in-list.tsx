@@ -6,29 +6,29 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, CheckCircle, QrCode } from 'lucide-react';
 import type { Registration } from '@/lib/data';
-import { checkInLeadAction } from '../actions';
+import { checkInRegistrationAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
 
 import { QrScanner } from './qr-scanner';
 
 interface CheckInListProps {
-    leads: Registration[];
+    registrations: Registration[];
     eventId: string;
 }
 
-export function CheckInList({ leads, eventId }: CheckInListProps) {
+export function CheckInList({ registrations, eventId }: CheckInListProps) {
     const [search, setSearch] = useState('');
     const [isScanning, setIsScanning] = useState(false);
     const { toast } = useToast();
 
-    const filteredLeads = leads.filter(lead =>
-        lead.name.toLowerCase().includes(search.toLowerCase()) ||
-        lead.email.toLowerCase().includes(search.toLowerCase())
+    const filteredRegistrations = registrations.filter(reg =>
+        reg.name.toLowerCase().includes(search.toLowerCase()) ||
+        reg.email.toLowerCase().includes(search.toLowerCase())
     );
 
-    const handleCheckIn = async (leadId: string) => {
+    const handleCheckIn = async (registrationId: string) => {
         try {
-            await checkInLeadAction(leadId, eventId);
+            await checkInRegistrationAction(registrationId, eventId);
             toast({ title: "Checked In", description: "Attendee marked as present." });
             return true;
         } catch (error) {
@@ -38,20 +38,20 @@ export function CheckInList({ leads, eventId }: CheckInListProps) {
     };
 
     const handleScan = async (decodedText: string) => {
-        // decodedText should be the leadId
-        const lead = leads.find(l => l.id === decodedText);
+        // decodedText should be the registrationId
+        const reg = registrations.find(r => r.id === decodedText);
 
-        if (lead) {
-            if (lead.status === 'Attended') {
-                toast({ title: "Already Checked In", description: `${lead.name} is already marked present.`, variant: "default" });
+        if (reg) {
+            if (reg.status === 'Attended') {
+                toast({ title: "Already Checked In", description: `${reg.name} is already marked present.`, variant: "default" });
             } else {
-                const success = await handleCheckIn(lead.id);
+                const success = await handleCheckIn(reg.id);
                 if (success) {
                     // Optional: Play sound
                 }
             }
         } else {
-            toast({ variant: "destructive", title: "Invalid QR Code", description: "Lead not found for this event." });
+            toast({ variant: "destructive", title: "Invalid QR Code", description: "Registration not found for this event." });
         }
         setIsScanning(false);
     };
@@ -81,30 +81,30 @@ export function CheckInList({ leads, eventId }: CheckInListProps) {
             </div>
 
             <div className="space-y-2">
-                {filteredLeads.length === 0 ? (
+                {filteredRegistrations.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                         No attendees found.
                     </div>
                 ) : (
-                    filteredLeads.map(lead => (
-                        <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors">
+                    filteredRegistrations.map(reg => (
+                        <div key={reg.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors">
                             <div className="flex items-center gap-4">
                                 <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
                                     <QrCode className="h-5 w-5 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="font-medium">{lead.name}</p>
-                                    <p className="text-sm text-muted-foreground">{lead.email}</p>
+                                    <p className="font-medium">{reg.name}</p>
+                                    <p className="text-sm text-muted-foreground">{reg.email}</p>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2">
-                                {lead.status === 'Attended' ? (
+                                {reg.status === 'Attended' ? (
                                     <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                                         <CheckCircle className="mr-1 h-3 w-3" /> Checked In
                                     </Badge>
                                 ) : (
-                                    <Button size="sm" onClick={() => handleCheckIn(lead.id)}>
+                                    <Button size="sm" onClick={() => handleCheckIn(reg.id)}>
                                         Check In
                                     </Button>
                                 )}

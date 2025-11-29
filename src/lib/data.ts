@@ -436,60 +436,20 @@ export const deleteEvent = async (eventId: string) => {
   }
 }
 
-export const addLead = async (leadData: Omit<Lead, 'id' | 'registrationDate' | 'status'>) => {
+export const updateRegistrationStatus = async (registrationId: string, status: Registration['status']) => {
   if (USE_MOCK_DATA) {
-    const newLead: Lead = {
-      id: `lead-${Date.now()}`,
-      ...leadData,
-      status: 'New',
-      registrationDate: new Date().toISOString()
-    };
-    mockLeads.push(newLead);
-
-    // Update event analytics
-    const eventIndex = mockEvents.findIndex(e => e.id === leadData.eventId);
-    if (eventIndex !== -1) {
-      const currentAnalytics = mockEvents[eventIndex].analytics || { views: 0, clicks: 0, formSubmissions: 0 };
-      mockEvents[eventIndex] = {
-        ...mockEvents[eventIndex],
-        analytics: {
-          ...currentAnalytics,
-          formSubmissions: (currentAnalytics.formSubmissions || 0) + 1
-        }
-      };
-    }
-
-    return Promise.resolve(newLead.id);
-  }
-
-  try {
-    const docRef = await addDoc(collection(db, "leads"), {
-      ...leadData,
-      status: 'New',
-      registrationDate: new Date().toISOString()
-    });
-    // Note: In a real app, we'd also increment the event analytics counter here using a transaction or cloud function
-    return docRef.id;
-  } catch (error) {
-    console.error("Error adding lead: ", error);
-    throw new Error("Failed to add lead.");
-  }
-}
-
-export const updateLeadStatus = async (leadId: string, status: Lead['status']) => {
-  if (USE_MOCK_DATA) {
-    const leadIndex = mockLeads.findIndex(l => l.id === leadId);
-    if (leadIndex !== -1) {
-      mockLeads[leadIndex] = { ...mockLeads[leadIndex], status };
+    const regIndex = mockRegistrations.findIndex(r => r.id === registrationId);
+    if (regIndex !== -1) {
+      mockRegistrations[regIndex] = { ...mockRegistrations[regIndex], status };
     }
     return Promise.resolve();
   }
 
   try {
-    const leadRef = doc(db, 'leads', leadId);
-    await updateDoc(leadRef, { status });
+    const regRef = doc(db, 'registrations', registrationId);
+    await updateDoc(regRef, { status });
   } catch (error) {
-    console.error("Error updating lead status: ", error);
-    throw new Error("Failed to update lead status.");
+    console.error("Error updating registration status: ", error);
+    throw new Error("Failed to update registration status.");
   }
 }
