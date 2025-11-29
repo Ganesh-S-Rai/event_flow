@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { processRegistration } from '@/ai/flows/register-flow';
+import { processRegistration, type RegistrationOutput } from '@/ai/flows/register-flow';
 import { useToast } from '@/hooks/use-toast';
 import type { Event, Block } from '@/lib/data';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ function RegistrationForm({
     title?: string
 }) {
     const [submissionState, setSubmissionState] = useState<'form' | 'submitting' | 'success'>('form');
-    const [result, setResult] = useState<RegisterLeadOutput | null>(null);
+    const [result, setResult] = useState<RegistrationOutput | null>(null);
     const { toast } = useToast();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -45,23 +45,30 @@ function RegistrationForm({
         setSubmissionState('submitting');
         const formData = new FormData(event.currentTarget);
         const details: { [key: string]: string } = {};
+
+        // Convert FormData to plain object
+        formData.forEach((value, key) => {
+            if (typeof value === 'string') {
+                details[key] = value;
+            }
+        });
+
+        // Also map fields by label for robust extraction if needed (though flow handles fuzzy matching)
         fields.forEach(field => {
-            const key = field.label.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
-            details[key] = formData.get(field.id) as string;
+            // Ensure we capture the field ID value
+            const val = formData.get(field.id);
+            if (typeof val === 'string') {
+                details[field.id] = val;
+            }
         });
 
         try {
-            // The instruction replaces the registerLead call with processRegistration.
-            // Note: The original `setResult(res)` line after `await processRegistration`
-            // implies `processRegistration` returns a `res` object compatible with `RegisterLeadOutput`.
-            // If `processRegistration` does not return such an object, `setResult(res)` will cause an error
-            // or unexpected behavior. For faithful adherence to the instruction, it's included as provided.
             const res = await processRegistration({
-                eventId: eventId, // Use eventId from props
-                eventName: eventName, // Use eventName from props
-                registrationDetails: formData
+                eventId: eventId,
+                eventName: eventName,
+                registrationDetails: details
             });
-            setResult(res as RegisterLeadOutput); // Cast to RegisterLeadOutput if processRegistration returns a compatible type
+            setResult(res);
             setSubmissionState('success');
         } catch (error) {
             console.error('Registration failed:', error);
@@ -148,7 +155,7 @@ function RegistrationForm({
                             <Image src={result.qrCode} alt="Registration QR Code" fill />
                         </div>
                         <Button asChild className="mt-6 w-full">
-                            <a href={result.qrCode} download={`event-qrcode-${result.leadId}.png`}>
+                            <a href={result.qrCode} download={`event-qrcode-${result.registrationId}.png`}>
                                 <Download className="mr-2" />
                                 Download QR Code
                             </a>

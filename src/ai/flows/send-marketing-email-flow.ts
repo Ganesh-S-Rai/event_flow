@@ -68,11 +68,9 @@ const sendMarketingEmailFlow = ai.defineFlow(
       }
 
       await sendNetcoreEmail({
-        fromName,
-        fromEmail,
-        toEmail,
+        to: toEmail,
         subject,
-        htmlContent: finalHtml,
+        html: body,
       });
       return { success: true, message: 'Email sent successfully!' };
     } catch (error: any) {

@@ -9,8 +9,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const GenerateEditedImageSchema = z.object({
-  prompt: z.string().describe('The user\'s instructions for how to edit the image.'),
-  imageUrl: z.string().describe("The original image to be edited, as a data URI or URL."),
+    prompt: z.string().describe('The user\'s instructions for how to edit the image.'),
+    imageUrl: z.string().describe("The original image to be edited, as a data URI or URL."),
 });
 export type GenerateEditedImageInput = z.infer<typeof GenerateEditedImageSchema>;
 
@@ -26,7 +26,7 @@ export async function generateEditedImage(input: GenerateEditedImageInput): Prom
         },
     });
 
-    if (!media.url) {
+    if (!media || !media.url) {
         throw new Error('Image editing failed to produce a new image.');
     }
 

@@ -34,8 +34,8 @@ type GenerateFormState = {
 };
 
 type SendFormState = {
-    sendTestMessage: string;
-    sendTestSuccess?: boolean;
+  sendTestMessage: string;
+  sendTestSuccess?: boolean;
 };
 
 export async function generateEmailAction(
@@ -49,12 +49,12 @@ export async function generateEmailAction(
   if (!validatedFields.success) {
     const fields: Record<string, string> = {};
     for (const key of Object.keys(validatedFields.error.flatten().fieldErrors)) {
-        fields[key] = formData.get(key)?.toString() ?? '';
+      fields[key] = formData.get(key)?.toString() ?? '';
     }
     return {
       message: 'Error: Please check the form fields.',
       fields,
-      issues: validatedFields.error.flatten().fieldErrors[Object.keys(validatedFields.error.flatten().fieldErrors)[0]],
+      issues: Object.values(validatedFields.error.flatten().fieldErrors)[0],
     };
   }
 
@@ -74,25 +74,25 @@ export async function generateEmailAction(
 }
 
 export async function sendTestEmailAction(
-    prevState: SendFormState,
-    formData: FormData
+  prevState: SendFormState,
+  formData: FormData
 ): Promise<SendFormState> {
-    const validatedFields = SendTestEmailSchema.safeParse(Object.fromEntries(formData));
+  const validatedFields = SendTestEmailSchema.safeParse(Object.fromEntries(formData));
 
-    if (!validatedFields.success) {
-        return {
-            sendTestMessage: 'Error: ' + validatedFields.error.flatten().fieldErrors.toEmail?.[0] || 'Invalid input.',
-            sendTestSuccess: false,
-        };
-    }
+  if (!validatedFields.success) {
+    return {
+      sendTestMessage: 'Error: ' + validatedFields.error.flatten().fieldErrors.toEmail?.[0] || 'Invalid input.',
+      sendTestSuccess: false,
+    };
+  }
 
-    try {
-        const result = await sendMarketingEmail(validatedFields.data);
-        if (!result.success) {
-           return { sendTestMessage: `Error: ${result.message}`, sendTestSuccess: false };
-        }
-        return { sendTestMessage: 'Test email sent successfully!', sendTestSuccess: true };
-    } catch (error: any) {
-        return { sendTestMessage: `Error: ${error.message || 'An unknown error occurred.'}`, sendTestSuccess: false };
+  try {
+    const result = await sendMarketingEmail(validatedFields.data);
+    if (!result.success) {
+      return { sendTestMessage: `Error: ${result.message}`, sendTestSuccess: false };
     }
+    return { sendTestMessage: 'Test email sent successfully!', sendTestSuccess: true };
+  } catch (error: any) {
+    return { sendTestMessage: `Error: ${error.message || 'An unknown error occurred.'}`, sendTestSuccess: false };
+  }
 }

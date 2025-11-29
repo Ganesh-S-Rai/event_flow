@@ -27,7 +27,7 @@ export default async function CheckInPage({ params }: { params: Promise<{ eventI
                 <div>Checked In: <span className="font-medium text-foreground">{eventRegistrations.filter(l => l.status === 'Attended').length}</span></div>
             </div>
 
-            <CheckInList leads={eventRegistrations} eventId={eventId} />
+            <CheckInList registrations={eventRegistrations} eventId={eventId} />
         </div>
     );
 }

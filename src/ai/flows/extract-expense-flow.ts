@@ -60,7 +60,7 @@ export const extractExpenseFlow = ai.defineFlow(
                 date: null,
                 vendor: null,
                 description: "Failed to extract",
-                category: 'Other'
+                category: 'Other' as const
             };
         }
     }

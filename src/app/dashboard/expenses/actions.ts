@@ -2,7 +2,6 @@
 
 import { addExpense, type Expense } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
-import { runFlow } from 'genkit';
 import { extractExpenseFlow } from '@/ai/flows/extract-expense-flow';
 
 export async function createExpenseAction(expenseData: Omit<Expense, 'id'>) {
@@ -22,7 +21,7 @@ export async function analyzeReceiptAction(base64Image: string) {
         // or we pass it as part of the prompt.
         // The extractExpenseFlow expects a string (URL or base64).
 
-        const result = await runFlow(extractExpenseFlow, { image: base64Image });
+        const result = await extractExpenseFlow({ image: base64Image });
         return { success: true, data: result };
     } catch (error) {
         console.error("Failed to analyze receipt:", error);
