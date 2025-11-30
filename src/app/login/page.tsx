@@ -13,11 +13,11 @@ export default function LoginPage() {
                         <span className="ml-2 text-2xl font-bold">EventFlow</span>
                     </Link>
                     <h1 className="text-3xl font-bold">Welcome back</h1>
-                    <p className="text-muted-foreground">Enter your credentials to access your account</p>
+                    <p className="text-muted-foreground">Enter your email to sign in to your account</p>
                 </div>
                 <LoginForm />
                 <p className="text-center text-sm text-muted-foreground">
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <Link href="/signup" className="font-semibold text-primary hover:underline" prefetch={false}>
                         Sign up
                     </Link>

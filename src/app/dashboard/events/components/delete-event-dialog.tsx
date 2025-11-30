@@ -50,7 +50,8 @@ export function DeleteEventDialog({ open, onOpenChange, event }: DeleteEventDial
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                         This action cannot be undone. This will permanently delete the event
-                        <span className="font-semibold text-foreground"> "{event.name}" </span>
+                        To confirm, type <span className="font-bold text-foreground">delete my event</span> below:
+                        <span className="font-semibold text-foreground"> &quot;{event.name}&quot; </span>
                         and remove all associated data including leads and expenses.
                     </AlertDialogDescription>
                 </AlertDialogHeader>

@@ -11,9 +11,7 @@ export default async function EventsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Events</h2>
-          <p className="text-muted-foreground">
-            Here's a list of your events.
-          </p>
+          <p className="text-muted-foreground">Manage your events and view their performance.</p>
         </div>
         <CreateEvent />
       </div>

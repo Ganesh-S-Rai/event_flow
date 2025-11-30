@@ -9,9 +9,7 @@ export default async function SettingsPage() {
     <div className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-        <p className="text-muted-foreground">
-          Manage your application's integrations and appearance.
-        </p>
+        <p className="text-muted-foreground">Manage your account settings and integrations and appearance.</p>
       </div>
       <SettingsForm initialConfig={config} />
     </div>

@@ -126,7 +126,7 @@ export function SettingsForm({ initialConfig }: { initialConfig: AppConfig }) {
           <CardHeader>
             <CardTitle>Sender Profiles</CardTitle>
             <CardDescription>
-              Manage the "From" names and email addresses for your marketing
+              Manage the &quot;From&quot; names and email addresses for your marketing
               communications. These must be verified senders in Netcore.
             </CardDescription>
           </CardHeader>
@@ -180,7 +180,7 @@ export function SettingsForm({ initialConfig }: { initialConfig: AppConfig }) {
                   onClick={() => removeSenderProfile(profile.id)}
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />
-                  <span className="sr-only">Remove Profile</span>
+                  To confirm, type <span className="font-bold text-foreground">delete my account</span> below:<span className="sr-only">Remove Profile</span>
                 </Button>
               </div>
             ))}

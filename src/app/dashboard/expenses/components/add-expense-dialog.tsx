@@ -148,7 +148,7 @@ export function AddExpenseDialog({ events, defaultEventId }: { events: Event[], 
                             />
                         </div>
                         <p className="text-xs text-center text-muted-foreground">
-                            After upload, switch to "Manual Entry" to review and save.
+                            After upload, switch to &quot;Manual Entry&quot; to review and save.
                         </p>
                     </TabsContent>
 

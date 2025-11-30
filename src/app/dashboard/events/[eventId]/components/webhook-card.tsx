@@ -58,13 +58,14 @@ export function WebhookCard({ eventId }: WebhookCardProps) {
                     </div>
                 </div>
 
+                <p className="text-sm text-muted-foreground mb-4">You can use this webhook URL to integrate with third-party tools like Unbounce. It accepts POST requests with form data.</p>
                 <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md border">
                     <p className="font-medium mb-1">Instructions:</p>
                     <ol className="list-decimal list-inside space-y-1">
                         <li>Go to your Unbounce Page Overview.</li>
                         <li>Click on <strong>Integrations</strong> &gt; <strong>Webhooks</strong>.</li>
                         <li>Click <strong>Add Webhook</strong> and paste the URL above.</li>
-                        <li>Map your form fields (ensure 'email' is mapped).</li>
+                        <li>Map your form fields (ensure &apos;email&apos; is mapped).</li>
                     </ol>
                 </div>
             </CardContent>

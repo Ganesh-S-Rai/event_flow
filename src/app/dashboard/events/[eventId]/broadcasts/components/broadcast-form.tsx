@@ -130,7 +130,7 @@ export function BroadcastForm({ eventId, eventName, eventDescription }: Broadcas
                         rows={10}
                         className="font-mono text-sm"
                     />
-                    <p className="text-xs text-muted-foreground">Use <code>{`{{name}}`}</code> to insert the attendee's first name.</p>
+                    <p className="text-xs text-muted-foreground">Use <code>{`{{name}}`}</code> to insert the attendee&apos;s first name.</p>
                 </div>
 
                 <Button className="w-full" onClick={handleSend} disabled={isSending}>

@@ -12,9 +12,7 @@ export default async function RegistrationsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Registrations</h2>
-          <p className="text-muted-foreground">
-            Here's a list of all event registrations.
-          </p>
+          <p className="text-muted-foreground">View and manage all registrations across your events.</p>
         </div>
         <RegistrationActions data={data} />
       </div>
