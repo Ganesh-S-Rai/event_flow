@@ -15,9 +15,13 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app;
-let db;
-let auth;
+import { FirebaseApp } from 'firebase/app';
+import { Firestore } from 'firebase/firestore';
+import { Auth } from 'firebase/auth';
+
+let app: FirebaseApp = {} as FirebaseApp;
+let db: Firestore = {} as Firestore;
+let auth: Auth = {} as Auth;
 
 try {
   if (typeof window === 'undefined' && !process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
